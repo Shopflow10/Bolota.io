@@ -395,7 +395,7 @@
     box-shadow: 0 0 30px rgba(255,0,110,0.5);
   }
 
-  /* Abilities bar */
+  /* Abilities bar — desktop */
   .abilities-bar {
     position: absolute;
     bottom: 40px;
@@ -435,6 +435,98 @@
     transition: opacity 0.2s;
   }
   .ability.on-cd .ability-cd { opacity:1; }
+
+  /* ── JOYSTICK MOBILE ── */
+  #joystickZone {
+    position: fixed;
+    left: 0; bottom: 0;
+    width: 50vw; height: 45vw;
+    max-width: 240px; max-height: 240px;
+    z-index: 20;
+    display: none;
+    touch-action: none;
+  }
+  #joystickBase {
+    position: absolute;
+    left: 30px; bottom: 30px;
+    width: 110px; height: 110px;
+    border-radius: 50%;
+    background: rgba(0,245,255,0.06);
+    border: 2px solid rgba(0,245,255,0.18);
+    box-shadow: 0 0 20px rgba(0,245,255,0.1);
+    pointer-events: none;
+  }
+  #joystickKnob {
+    position: absolute;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, rgba(0,245,255,0.9), rgba(0,100,180,0.6));
+    border: 2px solid rgba(0,245,255,0.5);
+    box-shadow: 0 0 16px rgba(0,245,255,0.4);
+    pointer-events: none;
+    transform: translate(-50%,-50%);
+    transition: box-shadow 0.1s;
+  }
+
+  /* ── BOTÕES MOBILE (direita) ── */
+  #mobileButtons {
+    position: fixed;
+    right: 16px; bottom: 20px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 20;
+    align-items: flex-end;
+  }
+  .mb-row { display: flex; gap: 10px; }
+  .mob-btn {
+    width: 58px; height: 58px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.2);
+    background: rgba(0,10,30,0.75);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-size: 22px;
+    position: relative;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.1s, box-shadow 0.1s;
+    backdrop-filter: blur(6px);
+  }
+  .mob-btn:active { transform: scale(0.9); }
+  .mob-btn.btn-q { border-color: rgba(255,0,110,0.5); box-shadow: 0 0 12px rgba(255,0,110,0.2); }
+  .mob-btn.btn-e { border-color: rgba(0,245,255,0.5); box-shadow: 0 0 12px rgba(0,245,255,0.2); }
+  .mob-btn.btn-r { border-color: rgba(0,255,136,0.5); box-shadow: 0 0 12px rgba(0,255,136,0.2); }
+  .mob-btn .mob-key {
+    font-family: 'Orbitron', monospace;
+    font-size: 8px;
+    color: rgba(255,255,255,0.35);
+    position: absolute;
+    bottom: 4px;
+  }
+  .mob-btn .mob-cd {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.65);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Orbitron', monospace;
+    font-size: 13px; font-weight: 700;
+    color: rgba(255,255,255,0.85);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .mob-btn.on-cd .mob-cd { opacity: 1; }
+
+  /* Mobile: esconde elementos de desktop que atrapalham */
+  @media (max-width: 600px) {
+    #chatBox { width: 220px; bottom: 210px; }
+    #leaderboard { width: 140px; }
+    .lb-name { font-size: 10px; }
+    #minimap { width: 100px; height: 100px; bottom: 110px; }
+    #minimap canvas { width:100%; height:100%; }
+    .abilities-bar { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -502,6 +594,28 @@
 
 </div>
 
+<!-- ══ JOYSTICK MOBILE ══ -->
+<div id="joystickZone">
+  <div id="joystickBase">
+    <div id="joystickKnob"></div>
+  </div>
+</div>
+
+<!-- ══ BOTÕES MOBILE ══ -->
+<div id="mobileButtons">
+  <div class="mb-row">
+    <button class="mob-btn btn-q" id="mobQ" ontouchstart="mobAbility('Q',event)" onclick="useAbility('Q')">
+      💥<span class="mob-key">Q</span><div class="mob-cd" id="mobCdQ"></div>
+    </button>
+    <button class="mob-btn btn-e" id="mobE" ontouchstart="mobAbility('E',event)" onclick="useAbility('E')">
+      🛡️<span class="mob-key">E</span><div class="mob-cd" id="mobCdE"></div>
+    </button>
+    <button class="mob-btn btn-r" id="mobR" ontouchstart="mobAbility('R',event)" onclick="useAbility('R')">
+      ⚡<span class="mob-key">R</span><div class="mob-cd" id="mobCdR"></div>
+    </button>
+  </div>
+</div>
+
 <!-- ══ MORTE ══ -->
 <div id="deathScreen">
   <div class="death-title">DESTRUÍDO</div>
@@ -550,6 +664,9 @@ let lastTime = 0;
 
 // Abilities cooldown
 let abilities = { Q:0, E:0, R:0, shield:false, boosted:false };
+
+// Joystick state
+let joystick = { active:false, dx:0, dy:0, touchId:null, baseX:0, baseY:0 };
 
 // AI chat
 let chatHistory = [];
@@ -635,11 +752,14 @@ function startGame(){
   resize();
   window.addEventListener('resize', resize);
 
-  // Input
+  // Input mouse
   window.addEventListener('mousemove', e=>{ mousePos.x=e.clientX; mousePos.y=e.clientY; });
   window.addEventListener('keydown',   e=>{ keys[e.key.toUpperCase()]=true; onKey(e); });
   window.addEventListener('keyup',     e=>{ keys[e.key.toUpperCase()]=false; });
   window.addEventListener('wheel',     e=>{ cam.zoom = Math.max(0.3, Math.min(2, cam.zoom - e.deltaY*0.001)); }, {passive:true});
+
+  // Touch / mobile
+  initMobileControls();
 
   // Chat
   document.getElementById('sendBtn').addEventListener('click', sendChat);
@@ -757,13 +877,19 @@ function loop(now){
 function update(dt){
   if(!player.alive) return;
 
-  // Movimento do jogador (segue o mouse)
-  const screenCenterX = W/2, screenCenterY = H/2;
-  const dx = mousePos.x - screenCenterX;
-  const dy = mousePos.y - screenCenterY;
-  const dist = Math.sqrt(dx*dx+dy*dy);
-  const speed = abilities.boosted ? (220 / Math.sqrt(player.r)) : (160 / Math.sqrt(player.r));
+  // Movimento — joystick tem prioridade no mobile
+  let dx, dy, dist;
+  if(joystick.active){
+    dx = joystick.dx; dy = joystick.dy;
+    dist = Math.sqrt(dx*dx+dy*dy);
+  } else {
+    const screenCenterX = W/2, screenCenterY = H/2;
+    dx = mousePos.x - screenCenterX;
+    dy = mousePos.y - screenCenterY;
+    dist = Math.sqrt(dx*dx+dy*dy);
+  }
 
+  const speed = abilities.boosted ? (220 / Math.sqrt(player.r)) : (160 / Math.sqrt(player.r));
   if(dist > 4){
     player.angle = Math.atan2(dy, dx);
     const nx = dx/dist, ny=dy/dist;
@@ -990,7 +1116,6 @@ function useAbility(k){
         b.x+=Math.cos(a)*120; b.y+=Math.sin(a)*120;
       }
     });
-    document.getElementById('abilityQ').classList.add('on-cd');
     startCdTimer('Q',8,'cdQ');
     floatTexts.push({x:player.x,y:player.y-player.r-20,text:'BLAST!',color:'#ff006e',life:1.5,size:16});
   }
@@ -999,7 +1124,6 @@ function useAbility(k){
     abilities.E = 12;
     abilities.shield = true;
     setTimeout(()=>{ abilities.shield=false; },3000);
-    document.getElementById('abilityE').classList.add('on-cd');
     startCdTimer('E',12,'cdE');
     floatTexts.push({x:player.x,y:player.y-player.r-20,text:'SHIELD!',color:'#00f5ff',life:1.5,size:16});
     spawnShockwave(player.x,player.y,'#00f5ff',player.r*2);
@@ -1009,7 +1133,6 @@ function useAbility(k){
     abilities.R = 10;
     abilities.boosted = true;
     abilities.boostT = 0;
-    document.getElementById('abilityR').classList.add('on-cd');
     startCdTimer('R',10,'cdR');
     floatTexts.push({x:player.x,y:player.y-player.r-20,text:'BOOST!',color:'#00ff88',life:1.5,size:16});
   }
@@ -1017,16 +1140,24 @@ function useAbility(k){
 
 function startCdTimer(key, total, cdId){
   const cdEl = document.getElementById(cdId);
+  const mobEl = document.getElementById('mobCd'+key);
+  const mobBtn = document.getElementById('mob'+key);
+  if(mobBtn) mobBtn.classList.add('on-cd');
+  document.getElementById('ability'+key)?.classList.add('on-cd');
+
   const start = performance.now();
   function tick(){
     const elapsed = (performance.now()-start)/1000;
     const rem = total-elapsed;
     if(rem<=0){
-      document.getElementById('ability'+key).classList.remove('on-cd');
-      cdEl.textContent='';
+      document.getElementById('ability'+key)?.classList.remove('on-cd');
+      if(cdEl) cdEl.textContent='';
+      if(mobBtn) mobBtn.classList.remove('on-cd');
+      if(mobEl) mobEl.textContent='';
       return;
     }
-    cdEl.textContent = rem.toFixed(1);
+    if(cdEl) cdEl.textContent = rem.toFixed(1);
+    if(mobEl) mobEl.textContent = rem.toFixed(1);
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
@@ -1440,6 +1571,90 @@ function drawVignette(){
   vg.addColorStop(1,'rgba(1,2,6,0.55)');
   ctx.fillStyle=vg;
   ctx.fillRect(0,0,W,H);
+}
+
+// ─────────────────────────────
+//   CONTROLES MOBILE
+// ─────────────────────────────
+function initMobileControls(){
+  const isMobile = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+  if(!isMobile) return;
+
+  document.getElementById('joystickZone').style.display = 'block';
+  document.getElementById('mobileButtons').style.display = 'flex';
+
+  // Mensagem de controle
+  setTimeout(()=> addChatMsg('Sistema','Joystick: lado esquerdo | Habilidades: botões direita','system'), 2000);
+
+  const zone   = document.getElementById('joystickZone');
+  const base   = document.getElementById('joystickBase');
+  const knob   = document.getElementById('joystickKnob');
+  const baseR  = 55; // raio da base
+  const knobR  = 24;
+
+  function getBaseCenter(){
+    const rect = base.getBoundingClientRect();
+    return { x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
+  }
+
+  zone.addEventListener('touchstart', e=>{
+    e.preventDefault();
+    const t = e.changedTouches[0];
+    joystick.touchId = t.identifier;
+    joystick.active = true;
+    updateKnob(t.clientX, t.clientY);
+  }, {passive:false});
+
+  window.addEventListener('touchmove', e=>{
+    for(const t of e.changedTouches){
+      if(t.identifier === joystick.touchId){
+        e.preventDefault();
+        updateKnob(t.clientX, t.clientY);
+      }
+    }
+  }, {passive:false});
+
+  window.addEventListener('touchend', e=>{
+    for(const t of e.changedTouches){
+      if(t.identifier === joystick.touchId){
+        joystick.active = false;
+        joystick.dx = 0; joystick.dy = 0;
+        joystick.touchId = null;
+        // Retorna knob ao centro
+        const c = getBaseCenter();
+        const br = base.getBoundingClientRect();
+        knob.style.left = (c.x - br.left) + 'px';
+        knob.style.top  = (c.y - br.top)  + 'px';
+      }
+    }
+  });
+
+  function updateKnob(cx, cy){
+    const c = getBaseCenter();
+    let dx = cx - c.x;
+    let dy = cy - c.y;
+    const d = Math.sqrt(dx*dx+dy*dy);
+    const maxD = baseR - knobR;
+    if(d > maxD){ dx = dx/d*maxD; dy = dy/d*maxD; }
+    joystick.dx = dx; joystick.dy = dy;
+
+    const br = base.getBoundingClientRect();
+    knob.style.left = (c.x - br.left + dx) + 'px';
+    knob.style.top  = (c.y - br.top  + dy) + 'px';
+  }
+
+  // Inicializa knob no centro da base
+  setTimeout(()=>{
+    const c = getBaseCenter();
+    const br = base.getBoundingClientRect();
+    knob.style.left = (c.x - br.left) + 'px';
+    knob.style.top  = (c.y - br.top)  + 'px';
+  }, 100);
+}
+
+function mobAbility(k, e){
+  if(e) e.preventDefault();
+  useAbility(k);
 }
 
 // ─────────────────────────────
