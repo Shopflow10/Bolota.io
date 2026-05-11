@@ -1,236 +1,237 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Orbit Rush</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    html, body {
-      margin: 0;
-      overflow: hidden;
-      background: #050816;
-      touch-action: none;
-      font-family: Arial, sans-serif;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Blob Arena</title>
 
-    canvas {
-      display: block;
-      background: radial-gradient(circle at center, #111827, #030712);
-    }
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial;
+}
 
-    #hud {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      color: white;
-      z-index: 10;
-    }
+body{
+overflow:hidden;
+background:#0b0f1a;
+}
 
-    #leaderboard {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      color: white;
-      background: rgba(0,0,0,0.4);
-      padding: 10px;
-      border-radius: 12px;
-      z-index: 10;
-    }
+canvas{
+position:fixed;
+top:0;
+left:0;
+}
 
-    #joystick {
-      position: fixed;
-      bottom: 30px;
-      left: 30px;
-      width: 110px;
-      height: 110px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.08);
-      border: 2px solid rgba(255,255,255,0.15);
-      z-index: 20;
-    }
+#hud{
+position:fixed;
+top:15px;
+left:15px;
+color:white;
+z-index:5;
+font-size:18px;
+background:rgba(0,0,0,0.4);
+padding:10px 15px;
+border-radius:14px;
+backdrop-filter:blur(5px);
+}
 
-    #stick {
-      position: absolute;
-      width: 50px;
-      height: 50px;
-      background: white;
-      border-radius: 50%;
-      left: 30px;
-      top: 30px;
-    }
-  </style>
+#joystick{
+position:fixed;
+bottom:40px;
+left:40px;
+width:120px;
+height:120px;
+border-radius:50%;
+background:rgba(255,255,255,0.08);
+border:2px solid rgba(255,255,255,0.1);
+z-index:10;
+}
+
+#stick{
+position:absolute;
+width:55px;
+height:55px;
+left:32px;
+top:32px;
+border-radius:50%;
+background:#6d7cff;
+}
+</style>
 </head>
+
 <body>
 
 <div id="hud">
-  <h1 class="text-2xl font-bold">Orbit Rush</h1>
-  <p id="score">Tamanho: 20</p>
-</div>
-
-<div id="leaderboard">
-  <h2 class="font-bold mb-2">Ranking</h2>
-  <p>1. Você</p>
-</div>
-
-<div id="joystick">
-  <div id="stick"></div>
+Tamanho: <span id="mass">10</span>
 </div>
 
 <canvas id="game"></canvas>
 
-<script>
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
+<div id="joystick">
+<div id="stick"></div>
+</div>
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+<script>
+
+const canvas = document.getElementById('game')
+const ctx = canvas.getContext('2d')
+
+canvas.width = innerWidth
+canvas.height = innerHeight
 
 const world = {
-  width: 4000,
-  height: 4000
-};
+width:5000,
+height:5000
+}
 
 const player = {
-  x: world.width / 2,
-  y: world.height / 2,
-  radius: 20,
-  speed: 5,
-  color: '#00ffff',
-  vx: 0,
-  vy: 0
-};
-
-const foods = [];
-
-for(let i = 0; i < 700; i++) {
-  foods.push({
-    x: Math.random() * world.width,
-    y: Math.random() * world.height,
-    radius: 6,
-    color: `hsl(${Math.random()*360},100%,60%)`
-  });
+x:2500,
+y:2500,
+radius:35,
+speed:5,
+color:'#6d7cff'
 }
 
-function drawGrid(cameraX, cameraY) {
-  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-  for(let x = 0; x < world.width; x += 80) {
-    ctx.beginPath();
-    ctx.moveTo(x - cameraX, -cameraY);
-    ctx.lineTo(x - cameraX, world.height - cameraY);
-    ctx.stroke();
-  }
+const foods = []
 
-  for(let y = 0; y < world.height; y += 80) {
-    ctx.beginPath();
-    ctx.moveTo(-cameraX, y - cameraY);
-    ctx.lineTo(world.width - cameraX, y - cameraY);
-    ctx.stroke();
-  }
+for(let i=0;i<600;i++){
+foods.push({
+x:Math.random()*world.width,
+y:Math.random()*world.height,
+radius:6,
+color:`hsl(${Math.random()*360},80%,60%)`
+})
 }
 
-function drawPlayer(cameraX, cameraY) {
-  ctx.beginPath();
-  ctx.arc(player.x - cameraX, player.y - cameraY, player.radius, 0, Math.PI * 2);
-  ctx.fillStyle = player.color;
-  ctx.shadowBlur = 25;
-  ctx.shadowColor = '#00ffff';
-  ctx.fill();
-  ctx.shadowBlur = 0;
+const cam = {
+x:0,
+y:0
 }
 
-function drawFoods(cameraX, cameraY) {
-  foods.forEach(food => {
-    ctx.beginPath();
-    ctx.arc(food.x - cameraX, food.y - cameraY, food.radius, 0, Math.PI * 2);
-    ctx.fillStyle = food.color;
-    ctx.fill();
-  });
+const joy = {
+active:false,
+dx:0,
+dy:0
 }
 
-function update() {
-  player.x += player.vx;
-  player.y += player.vy;
+const joystick = document.getElementById('joystick')
+const stick = document.getElementById('stick')
 
-  if(player.x < player.radius) player.x = player.radius;
-  if(player.y < player.radius) player.y = player.radius;
-  if(player.x > world.width - player.radius) player.x = world.width - player.radius;
-  if(player.y > world.height - player.radius) player.y = world.height - player.radius;
+let joyStartX=0
+let joyStartY=0
 
-  for(let i = foods.length - 1; i >= 0; i--) {
-    const food = foods[i];
-    const dx = player.x - food.x;
-    const dy = player.y - food.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
+joystick.addEventListener('touchstart',e=>{
+joy.active=true
+const t=e.touches[0]
+joyStartX=t.clientX
+joyStartY=t.clientY
+})
 
-    if(dist < player.radius) {
-      foods.splice(i, 1);
-      player.radius += 0.15;
-      document.getElementById('score').innerText = 'Tamanho: ' + Math.floor(player.radius);
-    }
-  }
+window.addEventListener('touchmove',e=>{
+if(!joy.active)return
+
+const t=e.touches[0]
+
+joy.dx=t.clientX-joyStartX
+joy.dy=t.clientY-joyStartY
+
+const dist=Math.hypot(joy.dx,joy.dy)
+
+if(dist>40){
+joy.dx=(joy.dx/dist)*40
+joy.dy=(joy.dy/dist)*40
 }
 
-function gameLoop() {
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+stick.style.transform=`translate(${joy.dx}px,${joy.dy}px)`
+})
 
-  const cameraX = player.x - canvas.width / 2;
-  const cameraY = player.y - canvas.height / 2;
+window.addEventListener('touchend',()=>{
+joy.active=false
+joy.dx=0
+joy.dy=0
+stick.style.transform='translate(0px,0px)'
+})
 
-  drawGrid(cameraX, cameraY);
-  drawFoods(cameraX, cameraY);
-  drawPlayer(cameraX, cameraY);
+function update(){
 
-  update();
+player.x += joy.dx*0.12
+player.y += joy.dy*0.12
 
-  requestAnimationFrame(gameLoop);
+player.x=Math.max(player.radius,Math.min(world.width-player.radius,player.x))
+player.y=Math.max(player.radius,Math.min(world.height-player.radius,player.y))
+
+foods.forEach((f,index)=>{
+const d=Math.hypot(player.x-f.x,player.y-f.y)
+
+if(d < player.radius+f.radius){
+foods.splice(index,1)
+player.radius += 0.2
+}
+})
+
+cam.x=player.x-canvas.width/2
+cam.y=player.y-canvas.height/2
+
+mass.innerText=Math.floor(player.radius)
 }
 
-gameLoop();
+function drawGrid(){
+ctx.strokeStyle='rgba(255,255,255,0.04)'
 
-const joystick = document.getElementById('joystick');
-const stick = document.getElementById('stick');
+for(let x=0;x<world.width;x+=80){
+ctx.beginPath()
+ctx.moveTo(x-cam.x,-cam.y)
+ctx.lineTo(x-cam.x,world.height-cam.y)
+ctx.stroke()
+}
 
-let dragging = false;
+for(let y=0;y<world.height;y+=80){
+ctx.beginPath()
+ctx.moveTo(-cam.x,y-cam.y)
+ctx.lineTo(world.width-cam.x,y-cam.y)
+ctx.stroke()
+}
+}
 
-joystick.addEventListener('touchstart', () => {
-  dragging = true;
-});
+function draw(){
+ctx.clearRect(0,0,canvas.width,canvas.height)
 
-window.addEventListener('touchend', () => {
-  dragging = false;
-  stick.style.left = '30px';
-  stick.style.top = '30px';
-  player.vx = 0;
-  player.vy = 0;
-});
+ctx.fillStyle='#0b0f1a'
+ctx.fillRect(0,0,canvas.width,canvas.height)
 
-window.addEventListener('touchmove', (e) => {
-  if(!dragging) return;
+drawGrid()
 
-  const touch = e.touches[0];
-  const rect = joystick.getBoundingClientRect();
+foods.forEach(f=>{
+ctx.beginPath()
+ctx.fillStyle=f.color
+ctx.arc(f.x-cam.x,f.y-cam.y,f.radius,0,Math.PI*2)
+ctx.fill()
+})
 
-  const x = touch.clientX - rect.left - 55;
-  const y = touch.clientY - rect.top - 55;
+ctx.beginPath()
+ctx.fillStyle=player.color
+ctx.shadowBlur=30
+ctx.shadowColor=player.color
+ctx.arc(player.x-cam.x,player.y-cam.y,player.radius,0,Math.PI*2)
+ctx.fill()
+ctx.shadowBlur=0
+}
 
-  const dist = Math.min(Math.sqrt(x*x + y*y), 35);
-  const angle = Math.atan2(y, x);
+function loop(){
+update()
+draw()
+requestAnimationFrame(loop)
+}
 
-  const stickX = Math.cos(angle) * dist;
-  const stickY = Math.sin(angle) * dist;
+loop()
 
-  stick.style.left = (stickX + 30) + 'px';
-  stick.style.top = (stickY + 30) + 'px';
+window.addEventListener('resize',()=>{
+canvas.width=innerWidth
+canvas.height=innerHeight
+})
 
-  player.vx = Math.cos(angle) * player.speed;
-  player.vy = Math.sin(angle) * player.speed;
-});
-
-window.addEventListener('resize', () => {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-});
 </script>
 
 </body>
