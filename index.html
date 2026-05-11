@@ -1,1596 +1,237 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#000010">
-<title>NEBULAX ULTRA</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:none;}
-html,body{width:100%;height:100%;overflow:hidden;background:#000010;font-family:'Segoe UI',sans-serif;color:#fff;}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orbit Rush</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    html, body {
+      margin: 0;
+      overflow: hidden;
+      background: #050816;
+      touch-action: none;
+      font-family: Arial, sans-serif;
+    }
 
-:root{
-  --c1:#00f5ff;--c2:#ff006e;--c3:#ffd700;--c4:#7b2fff;
-  --panel:rgba(4,12,40,0.93);--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);
-}
+    canvas {
+      display: block;
+      background: radial-gradient(circle at center, #111827, #030712);
+    }
 
-canvas{position:fixed;top:0;left:0;display:block;}
+    #hud {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      color: white;
+      z-index: 10;
+    }
 
-/* ── EMOJI BURST ── */
-.emoji-burst{
-  position:fixed;pointer-events:none;z-index:300;font-size:28px;
-  animation:emojiFly 1.2s ease-out forwards;
-}
-@keyframes emojiFly{
-  0%{transform:translate(0,0) scale(0.4) rotate(0deg);opacity:1;}
-  60%{opacity:1;transform:translate(var(--ex),var(--ey)) scale(1.4) rotate(var(--er));}
-  100%{transform:translate(var(--ex2),var(--ey2)) scale(0.2) rotate(var(--er2));opacity:0;}
-}
-.emoji-ring{
-  position:fixed;pointer-events:none;z-index:300;font-size:22px;
-  animation:emojiRing 0.9s ease-out forwards;
-}
-@keyframes emojiRing{
-  0%{transform:translate(-50%,-50%) scale(0);opacity:1;}
-  50%{transform:translate(-50%,-50%) scale(1.8) rotate(180deg);opacity:0.8;}
-  100%{transform:translate(-50%,-50%) scale(3.5) rotate(360deg);opacity:0;}
-}
-.emoji-text{
-  position:fixed;pointer-events:none;z-index:300;
-  font-size:18px;font-weight:900;color:var(--c3);
-  text-shadow:0 0 15px currentColor;
-  animation:emojiText 1.5s ease-out forwards;
-}
-@keyframes emojiText{
-  0%{transform:translateX(-50%) translateY(0) scale(0.5);opacity:0;}
-  20%{opacity:1;transform:translateX(-50%) translateY(-10px) scale(1.2);}
-  100%{transform:translateX(-50%) translateY(-70px) scale(0.8);opacity:0;}
-}
+    #leaderboard {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      color: white;
+      background: rgba(0,0,0,0.4);
+      padding: 10px;
+      border-radius: 12px;
+      z-index: 10;
+    }
 
-/* ── PLASMA TUNNEL ── */
-#tunnelCanvas{position:fixed;top:0;left:0;z-index:1;pointer-events:none;}
+    #joystick {
+      position: fixed;
+      bottom: 30px;
+      left: 30px;
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      border: 2px solid rgba(255,255,255,0.15);
+      z-index: 20;
+    }
 
-/* ── SPLASH ── */
-#splash{
-  position:fixed;inset:0;z-index:200;
-  background:radial-gradient(ellipse at 30% 40%,#000c28,#000005 80%);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:20px;padding-top:calc(20px + var(--safe-top));padding-bottom:calc(20px + var(--safe-bottom));
-}
-.splash-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
-.orb{position:absolute;border-radius:50%;filter:blur(60px);animation:orbFloat var(--d) ease-in-out infinite alternate;}
-@keyframes orbFloat{0%{transform:translate(0,0) scale(1);}100%{transform:translate(var(--tx),var(--ty)) scale(1.15);}}
-
-.logo-container{position:relative;margin-bottom:6px;animation:logoFloat 3s ease-in-out infinite;}
-@keyframes logoFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
-.logo-halo{position:absolute;inset:-40px;border-radius:50%;background:radial-gradient(ellipse,rgba(0,245,255,0.12),transparent 70%);animation:halo 2.5s ease-in-out infinite;}
-@keyframes halo{0%,100%{transform:scale(1);opacity:.5;}50%{transform:scale(1.3);opacity:1;}}
-
-.logo-text{
-  font-size:clamp(48px,14vw,78px);font-weight:900;letter-spacing:3px;
-  background:linear-gradient(135deg,#00f5ff 0%,#ffffff 35%,#bf5fff 65%,#ff006e 100%);
-  background-size:300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  animation:logoGrad 4s ease infinite;filter:drop-shadow(0 0 18px rgba(0,245,255,.4));
-  font-family:'Arial Black','Arial',sans-serif;
-}
-@keyframes logoGrad{0%,100%{background-position:0%;}50%{background-position:100%;}}
-.logo-sub{font-size:10px;letter-spacing:9px;color:var(--c1);opacity:.6;text-align:center;margin-top:2px;}
-
-.server-pill{
-  display:flex;align-items:center;gap:8px;
-  background:rgba(0,245,255,.06);border:1px solid rgba(0,245,255,.2);
-  border-radius:999px;padding:7px 18px;font-size:13px;color:var(--c1);
-  margin:18px 0 16px;
-}
-.ping{width:8px;height:8px;border-radius:50%;background:#00ff80;box-shadow:0 0 6px #00ff80;animation:blink 1.2s infinite;}
-@keyframes blink{0%,100%{opacity:1;}50%{opacity:.25;}}
-
-.mode-card{
-  width:100%;max-width:340px;
-  background:var(--panel);border:1px solid rgba(0,245,255,.18);
-  border-radius:18px;padding:14px 18px;margin-bottom:12px;
-  backdrop-filter:blur(20px);
-}
-.mode-label{font-size:10px;letter-spacing:3px;color:rgba(255,255,255,.35);text-transform:uppercase;margin-bottom:6px;}
-.mode-val{font-size:15px;font-weight:700;color:var(--c1);letter-spacing:1px;}
-.mayhem-tag{
-  display:inline-flex;align-items:center;gap:5px;margin-top:7px;
-  background:linear-gradient(90deg,rgba(255,0,110,.18),rgba(123,47,255,.18));
-  border:1px solid rgba(255,0,110,.35);border-radius:8px;
-  padding:4px 12px;font-size:11px;color:var(--c2);letter-spacing:2px;font-weight:700;
-}
-
-.name-row{
-  display:flex;align-items:center;gap:10px;
-  width:100%;max-width:340px;
-  background:rgba(0,245,255,.05);border:1px solid rgba(0,245,255,.2);
-  border-radius:14px;padding:10px 14px;margin-bottom:12px;
-}
-.name-row label{font-size:13px;color:rgba(255,255,255,.5);white-space:nowrap;}
-#pName{flex:1;background:none;border:none;outline:none;color:#fff;font-size:16px;min-width:0;}
-#pName::placeholder{color:rgba(255,255,255,.2);}
-.color-swatch{width:32px;height:32px;border-radius:50%;border:2px solid rgba(255,255,255,.25);cursor:pointer;transition:transform .2s;flex-shrink:0;}
-.color-swatch:active{transform:scale(1.2);}
-
-.icon-row{display:flex;gap:10px;margin-bottom:14px;}
-.icon-btn{
-  flex:1;height:54px;max-width:80px;
-  background:rgba(0,245,255,.05);border:1px solid rgba(0,245,255,.18);
-  border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  font-size:20px;gap:2px;cursor:pointer;transition:all .2s;
-}
-.icon-btn span{font-size:8px;color:rgba(255,255,255,.35);letter-spacing:1px;}
-.icon-btn:active{background:rgba(0,245,255,.15);transform:scale(.95);}
-
-.play-btn{
-  width:100%;max-width:340px;height:60px;
-  background:linear-gradient(135deg,#0af,#005fff);
-  border:none;border-radius:16px;
-  font-size:20px;font-weight:900;color:#fff;letter-spacing:4px;
-  cursor:pointer;position:relative;overflow:hidden;
-  box-shadow:0 0 35px rgba(0,180,255,.45);
-  transition:transform .12s,box-shadow .12s;
-  font-family:'Arial Black','Arial',sans-serif;
-}
-.play-btn::after{
-  content:'';position:absolute;top:-50%;left:-70%;
-  width:35%;height:200%;background:rgba(255,255,255,.22);
-  transform:skewX(-22deg);animation:btnShine 2.8s infinite;
-}
-@keyframes btnShine{0%{left:-70%;}100%{left:170%;}}
-.play-btn:active{transform:scale(.97);box-shadow:0 0 20px rgba(0,180,255,.3);}
-
-.xp-banner{
-  width:100%;max-width:340px;margin-top:12px;
-  background:rgba(255,215,0,.07);border:1px solid rgba(255,215,0,.2);
-  border-radius:12px;padding:9px 14px;
-  font-size:12px;color:var(--c3);display:flex;align-items:center;gap:8px;
-}
-
-/* ── HUD ── */
-#hud{
-  position:fixed;inset:0;pointer-events:none;z-index:50;display:none;
-  padding-top:var(--safe-top);padding-bottom:var(--safe-bottom);
-}
-.hud-tl{position:absolute;top:calc(10px + var(--safe-top));left:10px;}
-.lvl-badge{
-  background:linear-gradient(90deg,rgba(0,245,255,.85),rgba(0,80,200,.85));
-  border-radius:20px;padding:5px 16px;font-size:13px;font-weight:700;
-  box-shadow:0 0 12px rgba(0,245,255,.4);letter-spacing:1px;
-}
-.score-txt{font-size:11px;color:rgba(255,255,255,.6);padding:3px 6px;}
-
-.lb{
-  position:absolute;top:calc(10px + var(--safe-top));right:10px;
-  background:rgba(4,12,40,.8);border:1px solid rgba(0,245,255,.18);
-  border-radius:14px;padding:8px 12px;min-width:128px;backdrop-filter:blur(14px);
-}
-.lb-hd{font-size:9px;letter-spacing:3px;color:var(--c1);margin-bottom:6px;font-weight:700;}
-.lb-row{display:flex;align-items:center;gap:5px;padding:2px 0;font-size:11px;color:rgba(255,255,255,.65);}
-.lb-row.me{color:var(--c3);font-weight:700;}
-.lb-n{font-size:9px;color:rgba(255,255,255,.25);width:13px;font-weight:700;}
-.lb-c{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-.lb-nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;}
-.lb-sc{font-size:9px;color:rgba(255,255,255,.4);}
-
-.minimap-wrap{
-  position:absolute;bottom:calc(14px + var(--safe-bottom));right:14px;
-  width:110px;height:110px;border-radius:14px;overflow:hidden;
-  border:1px solid rgba(0,245,255,.22);background:rgba(4,12,40,.75);
-  backdrop-filter:blur(10px);
-}
-#mmCanvas{width:100%;height:100%;}
-
-/* ── JOYSTICK ── */
-#joy{
-  position:fixed;
-  left:16px;bottom:calc(16px + var(--safe-bottom));
-  width:130px;height:130px;
-  z-index:60;display:none;pointer-events:auto;
-}
-.joy-base{
-  position:absolute;inset:0;border-radius:50%;
-  background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.12);
-}
-#jKnob{
-  position:absolute;width:50px;height:50px;border-radius:50%;
-  background:radial-gradient(circle,rgba(0,245,255,.65),rgba(0,80,200,.45));
-  border:2px solid rgba(0,245,255,.55);
-  box-shadow:0 0 18px rgba(0,245,255,.35);
-  top:50%;left:50%;transform:translate(-50%,-50%);
-  transition:box-shadow .1s;
-}
-
-/* ── ACTION BUTTONS ── */
-#actBtns{
-  position:fixed;
-  right:14px;bottom:calc(140px + var(--safe-bottom));
-  display:none;flex-direction:column;gap:10px;z-index:60;
-}
-.act{
-  width:62px;height:62px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:24px;border:2px solid;pointer-events:auto;
-  backdrop-filter:blur(10px);cursor:pointer;
-  transition:transform .1s,box-shadow .1s;
-}
-.act:active{transform:scale(.88);}
-.act-split{background:rgba(255,50,50,.14);border-color:rgba(255,80,80,.5);box-shadow:0 0 14px rgba(255,50,50,.2);}
-.act-eject{background:rgba(0,200,100,.14);border-color:rgba(0,220,120,.5);box-shadow:0 0 14px rgba(0,200,100,.2);}
-
-/* ── DEATH ── */
-#death{
-  position:fixed;inset:0;background:rgba(0,0,0,.88);
-  display:none;flex-direction:column;align-items:center;justify-content:center;
-  z-index:150;backdrop-filter:blur(12px);
-  padding:20px;
-}
-.death-t{
-  font-size:clamp(36px,10vw,64px);font-weight:900;color:var(--c2);
-  text-shadow:0 0 30px rgba(255,0,110,.6);margin-bottom:6px;
-  font-family:'Arial Black','Arial',sans-serif;letter-spacing:2px;
-  animation:dPulse 1s ease-in-out infinite;
-}
-@keyframes dPulse{0%,100%{filter:brightness(1);}50%{filter:brightness(1.5);}}
-.death-info{font-size:15px;color:rgba(255,255,255,.55);margin-bottom:10px;}
-.death-stat{font-size:22px;color:#fff;font-weight:700;margin-bottom:28px;}
-.respawn-btn{
-  background:linear-gradient(135deg,#ff006e,#7b2fff);border:none;border-radius:16px;
-  padding:16px 44px;font-size:18px;font-weight:900;color:#fff;cursor:pointer;
-  letter-spacing:2px;box-shadow:0 0 35px rgba(255,0,110,.45);
-  transition:transform .15s,box-shadow .15s;font-family:'Arial Black','Arial',sans-serif;
-}
-.respawn-btn:active{transform:scale(.96);}
-
-/* ── TOAST ── */
-.toast{
-  position:fixed;top:calc(70px + var(--safe-top));left:50%;transform:translateX(-50%);
-  background:rgba(0,245,255,.15);border:1px solid rgba(0,245,255,.4);
-  border-radius:999px;padding:7px 20px;font-size:13px;color:var(--c1);
-  z-index:100;white-space:nowrap;pointer-events:none;
-  animation:toastIn .3s ease forwards;
-}
-@keyframes toastIn{0%{opacity:0;transform:translateX(-50%) translateY(-10px);}100%{opacity:1;transform:translateX(-50%) translateY(0);}}
-
-/* ── SCREEN FLASH ── */
-#screenFlash{
-  position:fixed;inset:0;z-index:200;pointer-events:none;
-  opacity:0;transition:opacity 0.05s;
-}
-
-/* ── KILL FEED ── */
-#killFeed{
-  position:fixed;left:10px;top:calc(90px + var(--safe-top));
-  z-index:60;pointer-events:none;display:none;
-  flex-direction:column;gap:4px;
-}
-.kf-item{
-  background:rgba(255,0,110,.15);border:1px solid rgba(255,0,110,.3);
-  border-radius:8px;padding:4px 10px;font-size:11px;color:#fff;
-  animation:kfIn .3s ease,kfOut .4s ease 2.6s forwards;
-  white-space:nowrap;backdrop-filter:blur(6px);
-}
-@keyframes kfIn{from{opacity:0;transform:translateX(-20px);}to{opacity:1;transform:translateX(0);}}
-@keyframes kfOut{to{opacity:0;transform:translateX(-20px);}}
-
-/* ── PLASMA WAVE ── */
-#plasmaBar{
-  position:fixed;bottom:0;left:0;right:0;height:3px;z-index:60;pointer-events:none;display:none;
-  background:linear-gradient(90deg,#00f5ff,#7b2fff,#ff006e,#ffd700,#00f5ff);
-  background-size:400%;
-  animation:plasmaFlow 2s linear infinite;
-  box-shadow:0 0 12px rgba(0,245,255,.8);
-}
-@keyframes plasmaFlow{0%{background-position:0%;}100%{background-position:400%;}}
-</style>
+    #stick {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      background: white;
+      border-radius: 50%;
+      left: 30px;
+      top: 30px;
+    }
+  </style>
 </head>
 <body>
 
-<canvas id="tunnelCanvas"></canvas>
-<div id="screenFlash"></div>
-
-<!-- ══ SPLASH / MENU ══════════════════════════════════════════════════════════ -->
-<div id="splash">
-  <div class="splash-bg">
-    <div class="orb" style="width:300px;height:300px;background:rgba(0,180,255,.08);left:-80px;top:-60px;--d:7s;--tx:40px;--ty:30px;"></div>
-    <div class="orb" style="width:250px;height:250px;background:rgba(123,47,255,.08);right:-60px;bottom:100px;--d:9s;--tx:-30px;--ty:-40px;"></div>
-    <div class="orb" style="width:200px;height:200px;background:rgba(255,0,110,.06);left:30%;top:60%;--d:6s;--tx:20px;--ty:-25px;"></div>
-  </div>
-
-  <div class="logo-container">
-    <div class="logo-halo"></div>
-    <div class="logo-text">NEBULAX</div>
-  </div>
-  <div class="logo-sub">ULTRA PLASMA EDITION</div>
-
-  <div class="server-pill">
-    <div class="ping"></div>
-    Brasil &nbsp;·&nbsp; <strong style="color:#00ff80">14 ms</strong>
-  </div>
-
-  <div class="mode-card">
-    <div class="mode-label">Servidor / Modo</div>
-    <div class="mode-val">FFA COM TEMPO</div>
-    <div class="mayhem-tag">⚡ MODO MAYHEM</div>
-  </div>
-
-  <div class="name-row">
-    <label>Nome:</label>
-    <input id="pName" type="text" placeholder="Seu apelido..." maxlength="18" autocomplete="off" autocorrect="off" spellcheck="false">
-    <div class="color-swatch" id="swatch" onclick="nextColor()"></div>
-  </div>
-
-  <div class="icon-row">
-    <div class="icon-btn">🏠<span>SOLO</span></div>
-    <div class="icon-btn">🏆<span>RANK</span></div>
-    <div class="icon-btn">⚙️<span>CONFIG</span></div>
-    <div class="icon-btn">⚔️<span>ARENA</span></div>
-  </div>
-
-  <button class="play-btn" id="playBtn">JOGAR</button>
-
-  <div class="xp-banner">
-    ⚡ <strong>Impulso XP · Plasma Duplo!</strong> &nbsp;11/05 09:00
-  </div>
-</div>
-
-<!-- ══ GAME CANVAS ══════════════════════════════════════════════════════════ -->
-<canvas id="gc"></canvas>
-
-<!-- ══ HUD ══════════════════════════════════════════════════════════════════ -->
 <div id="hud">
-  <div class="hud-tl">
-    <div class="lvl-badge">Nível: <span id="hLvl">1</span></div>
-    <div class="score-txt">Pontuação: <span id="hScore">0</span></div>
-  </div>
-  <div class="lb">
-    <div class="lb-hd">RANKING</div>
-    <div id="lbList"></div>
-  </div>
-  <div class="minimap-wrap">
-    <canvas id="mmCanvas" width="110" height="110"></canvas>
-  </div>
+  <h1 class="text-2xl font-bold">Orbit Rush</h1>
+  <p id="score">Tamanho: 20</p>
 </div>
 
-<!-- ══ KILL FEED ══════════════════════════════════════════════════════════════ -->
-<div id="killFeed"></div>
-
-<!-- ══ PLASMA BAR ══════════════════════════════════════════════════════════ -->
-<div id="plasmaBar"></div>
-
-<!-- ══ JOYSTICK ══════════════════════════════════════════════════════════════ -->
-<div id="joy">
-  <div class="joy-base"></div>
-  <div id="jKnob"></div>
+<div id="leaderboard">
+  <h2 class="font-bold mb-2">Ranking</h2>
+  <p>1. Você</p>
 </div>
 
-<!-- ══ ACTION BUTTONS ══════════════════════════════════════════════════════ -->
-<div id="actBtns">
-  <div class="act act-split" id="bSplit">✂️</div>
-  <div class="act act-eject" id="bEject">💫</div>
+<div id="joystick">
+  <div id="stick"></div>
 </div>
 
-<!-- ══ DEATH SCREEN ══════════════════════════════════════════════════════════ -->
-<div id="death">
-  <div class="death-t">ELIMINADO</div>
-  <div class="death-info">Pontuação final</div>
-  <div class="death-stat"><span id="dScore">0</span> pts · Nível <span id="dLvl">1</span></div>
-  <button class="respawn-btn" id="respawnBtn">↩ RENASCER</button>
-</div>
+<canvas id="game"></canvas>
 
 <script>
-'use strict';
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
 
-// ─── CONSTANTS ────────────────────────────────────────────────────────────────
-const W_SIZE   = 4000;
-const N_FOOD   = 600;
-const N_BOTS   = 22;
-const N_VIRUS  = 18;
-const COLORS   = ['#00f5ff','#ff006e','#ffd700','#7b2fff','#00ff88','#ff6600','#ff4488','#44aaff','#ff2222','#22ffcc'];
-const BOT_NAMES= ['Alpha','Ômega','Nova','Quasar','Pulsar','Nebula','Vortex','Cosmos','Titan','Orion','Lyra','Cygnus','Draco','Hydra','Sirius','Rigel','Altair','Vega'];
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-// Emoji sets for various events
-const EAT_EMOJIS    = ['😋','🤤','😍','🔥','💥','⚡','✨','💫','🌟'];
-const KILL_EMOJIS   = ['💀','☠️','🗡️','💢','😤','🤯','😈','👊','⚔️'];
-const LEVEL_EMOJIS  = ['⭐','🌟','💫','✨','🎉','🎊','🚀','🔥','👑'];
-const FOOD_EMOJIS   = ['🍬','🍭','💎','💠','🔮','🫧','✦','★'];
+const world = {
+  width: 4000,
+  height: 4000
+};
 
-// ─── DOM ─────────────────────────────────────────────────────────────────────
-const gc   = document.getElementById('gc');
-const ctx  = gc.getContext('2d', {alpha:false});
-const mmc  = document.getElementById('mmCanvas').getContext('2d');
-const tc   = document.getElementById('tunnelCanvas');
-const tctx = tc.getContext('2d');
-const flashEl = document.getElementById('screenFlash');
+const player = {
+  x: world.width / 2,
+  y: world.height / 2,
+  radius: 20,
+  speed: 5,
+  color: '#00ffff',
+  vx: 0,
+  vy: 0
+};
 
-// ─── STATE ───────────────────────────────────────────────────────────────────
-let W=0, H=0;
-let colorIdx = 0;
-let playerColor = COLORS[0];
-let playerName  = 'Jogador';
+const foods = [];
 
-const cam    = {x:W_SIZE/2, y:W_SIZE/2, sc:1, tsc:1};
-const mouse  = {x:0, y:0};
-const joy    = {on:false, dx:0, dy:0};
-let   jTid   = null;
-const jCenter= {x:0,y:0};
-
-let foods   = [];
-let viruses = [];
-let bots    = [];
-let parts   = [];
-let bgStars = [];
-let nebulaeClouds = [];
-let plasmaRings = [];
-let shockwaves = [];
-let tunnelTime = 0;
-let player  = {blobs:[], score:0, level:1, xp:0, alive:false};
-let frame   = 0;
-let raf     = 0;
-let camShake = {x:0,y:0,intensity:0};
-
-// ─── COLOR CYCLE ─────────────────────────────────────────────────────────────
-function nextColor(){
-  colorIdx=(colorIdx+1)%COLORS.length;
-  playerColor=COLORS[colorIdx];
-  document.getElementById('swatch').style.background=playerColor;
-}
-document.getElementById('swatch').style.background=playerColor;
-
-// ─── RESIZE ──────────────────────────────────────────────────────────────────
-function resize(){
-  W=gc.width=window.innerWidth;
-  H=gc.height=window.innerHeight;
-  tc.width=W; tc.height=H;
-}
-window.addEventListener('resize',resize,{passive:true});
-resize();
-
-// ─── TOAST ────────────────────────────────────────────────────────────────────
-function toast(msg, dur=2000){
-  const el=document.createElement('div');
-  el.className='toast'; el.textContent=msg;
-  document.body.appendChild(el);
-  setTimeout(()=>el.remove(), dur);
-}
-
-// ─── KILL FEED ───────────────────────────────────────────────────────────────
-function addKillFeed(msg){
-  const kf=document.getElementById('killFeed');
-  const el=document.createElement('div');
-  el.className='kf-item'; el.textContent=msg;
-  kf.appendChild(el);
-  setTimeout(()=>el.remove(), 3000);
-}
-
-// ─── SCREEN FLASH ────────────────────────────────────────────────────────────
-function screenFlash(color='rgba(255,255,255,0.25)', duration=180){
-  flashEl.style.background=color;
-  flashEl.style.opacity='1';
-  setTimeout(()=>{ flashEl.style.opacity='0'; }, duration);
-}
-
-// ─── CAMERA SHAKE ────────────────────────────────────────────────────────────
-function addCamShake(intensity){
-  camShake.intensity=Math.max(camShake.intensity, intensity);
-}
-
-// ─── EMOJI BURST EFFECT ──────────────────────────────────────────────────────
-function spawnEmojiBurst(screenX, screenY, emojis, count=6){
-  for(let i=0;i<count;i++){
-    const el=document.createElement('div');
-    el.className='emoji-burst';
-    el.textContent=emojis[Math.floor(Math.random()*emojis.length)];
-    const angle = (Math.PI*2/count)*i + Math.random()*.5;
-    const dist = 60+Math.random()*80;
-    const ex = Math.cos(angle)*dist;
-    const ey = Math.sin(angle)*dist - 20;
-    const er = (Math.random()-0.5)*180;
-    el.style.cssText=`
-      left:${screenX}px;top:${screenY}px;
-      --ex:${ex}px;--ey:${ey}px;--er:${er}deg;
-      --ex2:${ex*1.4}px;--ey2:${ey*1.4+30}px;--er2:${er*2}deg;
-    `;
-    document.body.appendChild(el);
-    setTimeout(()=>el.remove(), 1300);
-  }
-}
-
-function spawnEmojiRing(screenX, screenY, emoji){
-  const el=document.createElement('div');
-  el.className='emoji-ring';
-  el.textContent=emoji;
-  el.style.cssText=`left:${screenX}px;top:${screenY}px;font-size:28px;`;
-  document.body.appendChild(el);
-  setTimeout(()=>el.remove(), 1000);
-}
-
-function spawnEmojiText(screenX, screenY, text){
-  const el=document.createElement('div');
-  el.className='emoji-text';
-  el.textContent=text;
-  el.style.cssText=`left:${screenX}px;top:${screenY}px;`;
-  document.body.appendChild(el);
-  setTimeout(()=>el.remove(), 1600);
-}
-
-// ─── PLASMA RING ─────────────────────────────────────────────────────────────
-function spawnPlasmaRing(x, y, col, big=false){
-  plasmaRings.push({x,y,r:0,maxR:big?220:140,col,a:1,life:45,maxLife:45});
-}
-
-function spawnShockwave(x, y){
-  shockwaves.push({x,y,r:0,maxR:350,a:1,life:40,maxLife:40});
-}
-
-// ─── ENTITY CLASSES ──────────────────────────────────────────────────────────
-class Blob{
-  constructor(x,y,r,col,name=''){
-    this.x=x;this.y=y;this.r=r;this.col=col;this.name=name;
-    this.vx=0;this.vy=0;this.mt=0;this.gp=Math.random()*6.28;
-    this.trail=[];
-    this.wobble=0;this.wobbleV=0;
-    this.eatAnim=0;
-  }
-  get mass(){return this.r*this.r;}
-  get spd(){return Math.max(.7, 6/Math.sqrt(this.mass/400));}
-}
-
-function mkFood(){
-  const h=Math.floor(Math.random()*360);
-  // Some foods are emoji foods!
-  const isEmoji = Math.random()<0.08;
-  return {
-    x:Math.random()*W_SIZE, y:Math.random()*W_SIZE,
-    r:isEmoji ? 7+Math.random()*5 : 4+Math.random()*6,
-    col:`hsl(${h},100%,65%)`,
-    gcol:`hsl(${h},100%,82%)`,
-    ph:Math.random()*6.28, alive:true,
-    vx:0,vy:0,ej:false,ejl:0,
-    isEmoji,
-    emoji:FOOD_EMOJIS[Math.floor(Math.random()*FOOD_EMOJIS.length)],
-    pulse:0,glowPhase:Math.random()*6.28,
-    sparkle:Math.random()<0.2
-  };
-}
-
-function mkVirus(){
-  return {
-    x:Math.random()*W_SIZE, y:Math.random()*W_SIZE,
-    r:36, sp:0, sp2:0, spikes:12+Math.floor(Math.random()*6),
-    inner:0
-  };
-}
-
-class Bot{
-  constructor(){
-    this.x=Math.random()*W_SIZE; this.y=Math.random()*W_SIZE;
-    this.r=20+Math.random()*50;
-    const h=Math.floor(Math.random()*360);
-    this.col=`hsl(${h},88%,62%)`; this.gcol=`hsl(${h},88%,78%)`;
-    this.name=BOT_NAMES[Math.floor(Math.random()*BOT_NAMES.length)]+Math.floor(Math.random()*999);
-    this.tx=Math.random()*W_SIZE; this.ty=Math.random()*W_SIZE;
-    this.timer=0; this.alive=true; this.gp=Math.random()*6.28;
-    this.trail=[];
-    this.eatAnim=0;
-  }
-  get mass(){return this.r*this.r;}
-}
-
-// ─── INIT ────────────────────────────────────────────────────────────────────
-function initWorld(){
-  bgStars=[];
-  for(let i=0;i<900;i++) bgStars.push({
-    x:Math.random()*W_SIZE, y:Math.random()*W_SIZE,
-    r:Math.random()*1.8, a:0.1+Math.random()*.7, tw:Math.random()*6.28,
-    twinkleSpeed:0.01+Math.random()*0.03
+for(let i = 0; i < 700; i++) {
+  foods.push({
+    x: Math.random() * world.width,
+    y: Math.random() * world.height,
+    radius: 6,
+    color: `hsl(${Math.random()*360},100%,60%)`
   });
-
-  // Nebula clouds
-  nebulaeClouds=[];
-  for(let i=0;i<12;i++) nebulaeClouds.push({
-    x:Math.random()*W_SIZE, y:Math.random()*W_SIZE,
-    r:300+Math.random()*400,
-    col:`hsl(${Math.floor(Math.random()*360)},70%,50%)`,
-    a:0.03+Math.random()*0.04,
-    phase:Math.random()*6.28
-  });
-
-  foods  = Array.from({length:N_FOOD}, mkFood);
-  viruses= Array.from({length:N_VIRUS}, mkVirus);
-  bots   = Array.from({length:N_BOTS},  ()=>new Bot());
-  parts  = [];
-  plasmaRings=[];
-  shockwaves=[];
 }
 
-function spawnPlayer(){
-  const b=new Blob(W_SIZE/2+(Math.random()-.5)*600, W_SIZE/2+(Math.random()-.5)*600, 28, playerColor, playerName);
-  player={blobs:[b], score:0, level:1, xp:0, alive:true};
-  cam.sc=1; cam.tsc=1; cam.x=b.x; cam.y=b.y;
-}
-
-// ─── PARTICLES ───────────────────────────────────────────────────────────────
-function spawnParts(x,y,col,n=12,type='normal'){
-  const {r:cr,g:cg,b:cb}=colToRgb(col);
-  const safeCol=`rgb(${cr},${cg},${cb})`;
-  for(let i=0;i<n;i++){
-    const a=(Math.PI*2/n)*i+Math.random()*.5;
-    const sp=type==='big'?5+Math.random()*10:2+Math.random()*6;
-    const r=type==='big'?4+Math.random()*8:3+Math.random()*5;
-    const life=type==='big'?60+Math.random()*40:40+Math.random()*25;
-    parts.push({
-      x,y,
-      vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,
-      r,col:safeCol,a:1,life,ml:life,
-      type,
-      // Sparks have thinner shape
-      isSpark:Math.random()<0.3,
-      gravity:type==='big'?0.1:0
-    });
-  }
-}
-
-function spawnPlasmaParticles(x,y,col,n=20){
-  const {r:cr,g:cg,b:cb}=colToRgb(col);
-  for(let i=0;i<n;i++){
-    const a=Math.random()*Math.PI*2;
-    const sp=1+Math.random()*8;
-    parts.push({
-      x,y,
-      vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,
-      r:2+Math.random()*6,
-      col:`rgba(${cr},${cg},${cb},1)`,
-      a:1,life:50+Math.random()*30,ml:80,
-      isPlasma:true,isSpark:false,gravity:0,
-      glowColor:`rgba(${cr},${cg},${cb},0.5)`
-    });
-  }
-}
-
-// ─── INPUT ───────────────────────────────────────────────────────────────────
-gc.addEventListener('touchmove', e=>{
-  if(!player.alive) return;
-  const t=e.changedTouches[0];
-  mouse.x=t.clientX; mouse.y=t.clientY;
-  e.preventDefault();
-},{passive:false});
-
-gc.addEventListener('touchstart', e=>{
-  if(!player.alive) return;
-  const t=e.changedTouches[0];
-  mouse.x=t.clientX; mouse.y=t.clientY;
-},{passive:true});
-
-gc.addEventListener('mousemove', e=>{ mouse.x=e.clientX; mouse.y=e.clientY; });
-
-document.addEventListener('keydown', e=>{
-  if(e.code==='Space'){e.preventDefault(); doSplit();}
-  if(e.code==='KeyW'){e.preventDefault(); doEject();}
-});
-
-const jEl=document.getElementById('joy');
-const jKnob=document.getElementById('jKnob');
-
-jEl.addEventListener('touchstart', e=>{
-  const t=e.changedTouches[0];
-  jTid=t.identifier;
-  const rc=jEl.getBoundingClientRect();
-  jCenter.x=rc.left+rc.width/2; jCenter.y=rc.top+rc.height/2;
-  joy.on=true; e.preventDefault();
-},{passive:false});
-
-document.addEventListener('touchmove', e=>{
-  if(!joy.on) return;
-  for(const t of e.changedTouches){
-    if(t.identifier!==jTid) continue;
-    const dx=t.clientX-jCenter.x, dy=t.clientY-jCenter.y;
-    const d=Math.hypot(dx,dy), maxR=44;
-    const nx=d>maxR?(dx/d)*maxR:dx, ny=d>maxR?(dy/d)*maxR:dy;
-    jKnob.style.transform=`translate(calc(-50% + ${nx}px),calc(-50% + ${ny}px))`;
-    joy.dx=nx/maxR; joy.dy=ny/maxR;
-    break;
-  }
-  e.preventDefault();
-},{passive:false});
-
-document.addEventListener('touchend', e=>{
-  for(const t of e.changedTouches){
-    if(t.identifier===jTid){
-      joy.on=false; joy.dx=0; joy.dy=0; jTid=null;
-      jKnob.style.transform='translate(-50%,-50%)';
-      break;
-    }
-  }
-});
-
-document.getElementById('bSplit').addEventListener('touchstart', e=>{doSplit();e.preventDefault();},{passive:false});
-document.getElementById('bEject').addEventListener('touchstart', e=>{doEject();e.preventDefault();},{passive:false});
-document.getElementById('bSplit').addEventListener('click', doSplit);
-document.getElementById('bEject').addEventListener('click', doEject);
-
-// ─── SPLIT / EJECT ───────────────────────────────────────────────────────────
-function doSplit(){
-  if(!player.alive) return;
-  const nb=[];
-  for(const b of player.blobs){
-    if(b.r<24||player.blobs.length+nb.length>=16) continue;
-    const tx=joy.on ? b.x+joy.dx*300 : cam.x+(mouse.x-W/2)/cam.sc;
-    const ty=joy.on ? b.y+joy.dy*300 : cam.y+(mouse.y-H/2)/cam.sc;
-    const dx=tx-b.x, dy=ty-b.y, d=Math.hypot(dx,dy)||1;
-    const nr=b.r/Math.SQRT2;
-    b.r=nr;
-    const c=new Blob(b.x+dx/d*nr, b.y+dy/d*nr, nr, b.col, b.name);
-    c.vx=dx/d*15; c.vy=dy/d*15; c.mt=130; b.mt=130;
-    nb.push(c);
-    spawnParts(b.x,b.y,b.col,8);
-    const {x:sx,y:sy}=w2s(b.x,b.y);
-    spawnEmojiRing(sx, sy, '✂️');
-    spawnPlasmaRing(b.x, b.y, b.col);
-    addCamShake(4);
-  }
-  player.blobs.push(...nb);
-  if(nb.length) screenFlash('rgba(0,245,255,0.08)', 100);
-}
-
-function doEject(){
-  if(!player.alive) return;
-  for(const b of player.blobs){
-    if(b.r<22) continue;
-    const tx=joy.on ? b.x+joy.dx*300 : cam.x+(mouse.x-W/2)/cam.sc;
-    const ty=joy.on ? b.y+joy.dy*300 : cam.y+(mouse.y-H/2)/cam.sc;
-    const dx=tx-b.x, dy=ty-b.y, d=Math.hypot(dx,dy)||1;
-    b.r=Math.sqrt(Math.max(200, b.mass-120));
-    const f=mkFood();
-    f.x=b.x+dx/d*(b.r+14); f.y=b.y+dy/d*(b.r+14);
-    f.r=9; f.vx=dx/d*11; f.vy=dy/d*11; f.ej=true; f.ejl=45;
-    foods.push(f);
-    spawnParts(f.x,f.y,b.col,5);
-  }
-}
-
-// ─── CAMERA ──────────────────────────────────────────────────────────────────
-function updateCam(){
-  if(!player.blobs.length) return;
-  let cx=0,cy=0,mr=0;
-  for(const b of player.blobs){cx+=b.x;cy+=b.y;mr=Math.max(mr,b.r);}
-  cx/=player.blobs.length; cy/=player.blobs.length;
-  cam.x+=(cx-cam.x)*.09; cam.y+=(cy-cam.y)*.09;
-  const ts=Math.min(1.3,Math.max(.22, 380/(mr*3+100)));
-  cam.sc+=(ts-cam.sc)*.07;
-
-  // Camera shake decay
-  if(camShake.intensity>0.1){
-    camShake.x=(Math.random()-0.5)*camShake.intensity;
-    camShake.y=(Math.random()-0.5)*camShake.intensity;
-    camShake.intensity*=0.82;
-  } else {
-    camShake.x=0;camShake.y=0;camShake.intensity=0;
-  }
-}
-
-// ─── DRAW HELPERS ────────────────────────────────────────────────────────────
-function w2s(wx,wy){return {x:(wx-cam.x)*cam.sc+W/2+camShake.x, y:(wy-cam.y)*cam.sc+H/2+camShake.y};}
-
-function luma(col,amt){
-  const rgb=colToRgb(col);
-  const rr=Math.min(255,Math.max(0,Math.round(rgb.r+amt*255)));
-  const gg=Math.min(255,Math.max(0,Math.round(rgb.g+amt*255)));
-  const bb=Math.min(255,Math.max(0,Math.round(rgb.b+amt*255)));
-  return `rgb(${rr},${gg},${bb})`;
-}
-
-function colToRgb(col){
-  if(col.startsWith('hsl')){
-    const m=col.match(/[\d.]+/g); if(!m) return {r:128,g:128,b:128};
-    const h=+m[0]/360, s=+m[1]/100, l=+m[2]/100;
-    if(s===0){const v=Math.round(l*255);return {r:v,g:v,b:v};}
-    const q=l<.5?l*(1+s):l+s-l*s, p=2*l-q;
-    const hue2rgb=(p,q,t)=>{
-      if(t<0)t+=1;if(t>1)t-=1;
-      if(t<1/6)return p+(q-p)*6*t;
-      if(t<1/2)return q;
-      if(t<2/3)return p+(q-p)*(2/3-t)*6;
-      return p;
-    };
-    return {
-      r:Math.round(hue2rgb(p,q,h+1/3)*255),
-      g:Math.round(hue2rgb(p,q,h)*255),
-      b:Math.round(hue2rgb(p,q,h-1/3)*255)
-    };
-  }
-  if(col.startsWith('#')){
-    const h=col.replace('#','');
-    return {r:parseInt(h.slice(0,2),16)||0, g:parseInt(h.slice(2,4),16)||0, b:parseInt(h.slice(4,6),16)||0};
-  }
-  if(col.startsWith('rgb')){
-    const m=col.match(/\d+/g);
-    return m?{r:+m[0],g:+m[1],b:+m[2]}:{r:128,g:128,b:128};
-  }
-  return {r:128,g:128,b:128};
-}
-
-function colRgba(col,a){
-  const {r,g,b}=colToRgb(col);
-  return `rgba(${r},${g},${b},${a})`;
-}
-
-// ─── DRAW PLASMA TUNNEL ──────────────────────────────────────────────────────
-function drawTunnel(){
-  tunnelTime+=0.012;
-  tctx.clearRect(0,0,W,H);
-
-  const cx=W/2, cy=H/2;
-  const rings=14;
-  for(let i=rings;i>=0;i--){
-    const progress=(i+tunnelTime*.8%1)/rings;
-    const scale=Math.pow(progress,0.7);
-    const rx=cx, ry=cy;
-    const rw=(W*0.7)*scale, rh=(H*0.7)*scale;
-
-    // Hue cycles around the tunnel
-    const hue=(tunnelTime*60+i*25)%360;
-    const alpha=0.025*(1-scale)*(0.5+0.5*Math.sin(tunnelTime*3+i));
-
-    tctx.beginPath();
-    tctx.ellipse(rx,ry,rw/2,rh/2,0,0,Math.PI*2);
-    tctx.strokeStyle=`hsla(${hue},100%,65%,${alpha})`;
-    tctx.lineWidth=2+scale*8;
-    tctx.stroke();
-  }
-
-  // Plasma energy lines shooting from center
-  const lines=6;
-  for(let i=0;i<lines;i++){
-    const angle=(Math.PI*2/lines)*i+tunnelTime*0.4;
-    const len=Math.min(W,H)*0.45*(0.5+0.5*Math.sin(tunnelTime*2+i));
-    const hue=(tunnelTime*80+i*60)%360;
-    const grad=tctx.createLinearGradient(cx,cy,cx+Math.cos(angle)*len,cy+Math.sin(angle)*len);
-    grad.addColorStop(0,`hsla(${hue},100%,70%,0.12)`);
-    grad.addColorStop(1,`hsla(${hue},100%,70%,0)`);
-    tctx.beginPath();
-    tctx.moveTo(cx,cy);
-    tctx.lineTo(cx+Math.cos(angle)*len,cy+Math.sin(angle)*len);
-    tctx.strokeStyle=grad;
-    tctx.lineWidth=2;
-    tctx.stroke();
-  }
-}
-
-// ─── DRAW BLOB ───────────────────────────────────────────────────────────────
-function drawBlob(x,y,r,col,name,gp,isPlayer=false,eatAnim=0){
-  const t=frame*.04+gp;
-  const {r:cr,g:cg,b:cb}=colToRgb(col);
-  const base=`rgba(${cr},${cg},${cb}`;
-
-  // Trail effect (world coords needed for player)
-  // The blob pulses with eat animation
-  const eatScale = 1 + Math.sin(eatAnim * Math.PI) * 0.12;
-  const actualR = r * eatScale;
-
-  // Outer glow halo – much more dramatic
-  const glowR = actualR*(2.2+0.3*Math.sin(t));
-  const og=ctx.createRadialGradient(x,y,actualR*.3,x,y,glowR);
-  og.addColorStop(0,`${base},0.25)`);
-  og.addColorStop(.5,`${base},0.1)`);
-  og.addColorStop(1,`${base},0)`);
-  ctx.beginPath(); ctx.arc(x,y,glowR,0,Math.PI*2);
-  ctx.fillStyle=og; ctx.fill();
-
-  // Extra plasma outer ring for player
-  if(isPlayer){
-    const pr=actualR*1.35+Math.sin(t*2)*3;
-    ctx.globalAlpha=0.4+0.2*Math.sin(t*1.5);
-    ctx.beginPath(); ctx.arc(x,y,pr,0,Math.PI*2);
-    ctx.strokeStyle=`rgba(${cr},${cg},${cb},0.6)`;
-    ctx.lineWidth=2;
-    ctx.stroke();
-    ctx.globalAlpha=1;
-
-    // Second plasma ring
-    const pr2=actualR*1.6+Math.sin(t*3+1)*4;
-    ctx.globalAlpha=0.2+0.1*Math.sin(t*2);
-    ctx.beginPath(); ctx.arc(x,y,pr2,0,Math.PI*2);
-    ctx.strokeStyle=`rgba(${cr},${cg},${cb},0.35)`;
-    ctx.lineWidth=1.5;
-    ctx.stroke();
-    ctx.globalAlpha=1;
-  }
-
-  // Main body with iridescent gradient
-  const mg=ctx.createRadialGradient(x-actualR*.3,y-actualR*.35,actualR*.05,x,y,actualR);
-  mg.addColorStop(0,luma(col,.4));
-  mg.addColorStop(.4,`rgb(${cr},${cg},${cb})`);
-  mg.addColorStop(.75,luma(col,-.2));
-  mg.addColorStop(1,luma(col,-.5));
-  ctx.beginPath(); ctx.arc(x,y,actualR,0,Math.PI*2);
-  ctx.fillStyle=mg; ctx.fill();
-
-  // Membrane / cell wall effect
-  ctx.beginPath(); ctx.arc(x,y,actualR,0,Math.PI*2);
-  const edgeG=ctx.createRadialGradient(x,y,actualR*.7,x,y,actualR);
-  edgeG.addColorStop(0,'rgba(255,255,255,0)');
-  edgeG.addColorStop(1,`rgba(${cr},${cg},${cb},0.55)`);
-  ctx.fillStyle=edgeG; ctx.fill();
-
-  // Inner shine – dual highlights
-  const sg=ctx.createRadialGradient(x-actualR*.35,y-actualR*.38,0,x-actualR*.35,y-actualR*.38,actualR*.65);
-  sg.addColorStop(0,'rgba(255,255,255,0.65)');
-  sg.addColorStop(.6,'rgba(255,255,255,0.12)');
-  sg.addColorStop(1,'rgba(255,255,255,0)');
-  ctx.beginPath(); ctx.arc(x,y,actualR,0,Math.PI*2);
-  ctx.fillStyle=sg; ctx.fill();
-
-  // Secondary shine
-  const sg2=ctx.createRadialGradient(x+actualR*.2,y+actualR*.25,0,x+actualR*.2,y+actualR*.25,actualR*.3);
-  sg2.addColorStop(0,'rgba(255,255,255,0.2)');
-  sg2.addColorStop(1,'rgba(255,255,255,0)');
-  ctx.beginPath(); ctx.arc(x,y,actualR,0,Math.PI*2);
-  ctx.fillStyle=sg2; ctx.fill();
-
-  // Animated pulse border
-  ctx.globalAlpha=.55+Math.sin(t)*.25;
-  ctx.beginPath(); ctx.arc(x,y,actualR,0,Math.PI*2);
-  ctx.strokeStyle=luma(col,.3);
-  ctx.lineWidth=2+Math.sin(t)*1.2;
-  ctx.stroke();
-  ctx.globalAlpha=1;
-
-  // Name label
-  if(name && actualR>15){
-    const fs=Math.max(10,Math.min(actualR*.44,24));
-    ctx.font=`700 ${fs}px 'Segoe UI',sans-serif`;
-    ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.shadowColor='rgba(0,0,0,0.9)'; ctx.shadowBlur=8;
-    ctx.fillStyle='#fff'; ctx.fillText(name,x,y);
-    ctx.shadowBlur=0;
-  }
-}
-
-// ─── DRAW TRAIL ──────────────────────────────────────────────────────────────
-function drawTrail(trail, col){
-  if(trail.length<2) return;
-  const {r:cr,g:cg,b:cb}=colToRgb(col);
-  for(let i=1;i<trail.length;i++){
-    const t0=trail[i-1], t1=trail[i];
-    const prog=i/trail.length;
-    ctx.globalAlpha=prog*0.25;
+function drawGrid(cameraX, cameraY) {
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  for(let x = 0; x < world.width; x += 80) {
     ctx.beginPath();
-    ctx.arc(t0.x,t0.y,t0.r*0.5*prog,0,Math.PI*2);
-    ctx.fillStyle=`rgba(${cr},${cg},${cb},1)`;
+    ctx.moveTo(x - cameraX, -cameraY);
+    ctx.lineTo(x - cameraX, world.height - cameraY);
+    ctx.stroke();
+  }
+
+  for(let y = 0; y < world.height; y += 80) {
+    ctx.beginPath();
+    ctx.moveTo(-cameraX, y - cameraY);
+    ctx.lineTo(world.width - cameraX, y - cameraY);
+    ctx.stroke();
+  }
+}
+
+function drawPlayer(cameraX, cameraY) {
+  ctx.beginPath();
+  ctx.arc(player.x - cameraX, player.y - cameraY, player.radius, 0, Math.PI * 2);
+  ctx.fillStyle = player.color;
+  ctx.shadowBlur = 25;
+  ctx.shadowColor = '#00ffff';
+  ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+function drawFoods(cameraX, cameraY) {
+  foods.forEach(food => {
+    ctx.beginPath();
+    ctx.arc(food.x - cameraX, food.y - cameraY, food.radius, 0, Math.PI * 2);
+    ctx.fillStyle = food.color;
     ctx.fill();
-  }
-  ctx.globalAlpha=1;
+  });
 }
 
-// ─── DRAW VIRUS ──────────────────────────────────────────────────────────────
-function drawVirus(v){
-  const {x,y}=w2s(v.x,v.y); const r=v.r*cam.sc;
-  if(x+r<0||x-r>W||y+r<0||y-r>H) return;
-  v.sp+=.007; v.sp2-=.004; v.inner+=.015;
+function update() {
+  player.x += player.vx;
+  player.y += player.vy;
 
-  // Outer glow
-  ctx.save();
-  ctx.globalAlpha=.18;
-  const vGlow=ctx.createRadialGradient(x,y,0,x,y,r*2);
-  vGlow.addColorStop(0,'rgba(0,255,102,0.5)');
-  vGlow.addColorStop(1,'rgba(0,255,102,0)');
-  ctx.beginPath(); ctx.arc(x,y,r*2,0,Math.PI*2);
-  ctx.fillStyle=vGlow; ctx.fill();
-  ctx.globalAlpha=1;
+  if(player.x < player.radius) player.x = player.radius;
+  if(player.y < player.radius) player.y = player.radius;
+  if(player.x > world.width - player.radius) player.x = world.width - player.radius;
+  if(player.y > world.height - player.radius) player.y = world.height - player.radius;
 
-  // Outer spikes (rotating)
-  ctx.translate(x,y); ctx.rotate(v.sp);
-  ctx.beginPath();
-  for(let i=0;i<v.spikes;i++){
-    const a=(Math.PI*2/v.spikes)*i, a2=a+Math.PI/v.spikes;
-    const ox=Math.cos(a)*r, oy=Math.sin(a)*r;
-    const ix=Math.cos(a2)*r*.62, iy=Math.sin(a2)*r*.62;
-    if(i===0) ctx.moveTo(ox,oy); else ctx.lineTo(ox,oy);
-    ctx.lineTo(ix,iy);
-  }
-  ctx.closePath();
-  const vg=ctx.createRadialGradient(0,0,0,0,0,r);
-  vg.addColorStop(0,'#00ee55'); vg.addColorStop(.5,'#004422'); vg.addColorStop(1,'#001911');
-  ctx.fillStyle=vg; ctx.fill();
-  ctx.strokeStyle='rgba(0,255,136,0.8)'; ctx.lineWidth=2; ctx.stroke();
+  for(let i = foods.length - 1; i >= 0; i--) {
+    const food = foods[i];
+    const dx = player.x - food.x;
+    const dy = player.y - food.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
 
-  // Inner counter-rotating ring
-  ctx.rotate(-v.sp*2+v.sp2);
-  ctx.beginPath();
-  for(let i=0;i<8;i++){
-    const a=(Math.PI*2/8)*i;
-    const ox=Math.cos(a)*r*.45, oy=Math.sin(a)*r*.45;
-    const ix=Math.cos(a+Math.PI/8)*r*.3, iy=Math.sin(a+Math.PI/8)*r*.3;
-    if(i===0) ctx.moveTo(ox,oy); else ctx.lineTo(ox,oy);
-    ctx.lineTo(ix,iy);
-  }
-  ctx.closePath();
-  ctx.strokeStyle='rgba(0,255,180,0.5)'; ctx.lineWidth=1.5; ctx.stroke();
-
-  ctx.restore();
-}
-
-// ─── DRAW FOOD ────────────────────────────────────────────────────────────────
-function drawFood(f){
-  const {x,y}=w2s(f.x,f.y); const r=f.r*cam.sc;
-  if(x+r+12<0||x-r-12>W||y+r+12<0||y-r-12>H) return;
-  f.ph+=.06; f.glowPhase+=.04;
-
-  const pulse=1+Math.sin(f.ph)*0.15;
-  const pr=r*pulse;
-  const {r:fr,g:fg2,b:fb}=colToRgb(f.col);
-
-  // Glow halo
-  const fg=ctx.createRadialGradient(x,y,0,x,y,pr*3.5);
-  fg.addColorStop(0,`rgba(${fr},${fg2},${fb},0.7)`);
-  fg.addColorStop(.3,`rgba(${fr},${fg2},${fb},0.3)`);
-  fg.addColorStop(.7,`rgba(${fr},${fg2},${fb},0.08)`);
-  fg.addColorStop(1,`rgba(${fr},${fg2},${fb},0)`);
-  ctx.beginPath(); ctx.arc(x,y,pr*3.5,0,Math.PI*2);
-  ctx.fillStyle=fg; ctx.fill();
-
-  if(f.isEmoji){
-    // Draw emoji food
-    ctx.font=`${pr*2.2}px serif`;
-    ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.globalAlpha=0.9+0.1*Math.sin(f.ph);
-    ctx.fillText(f.emoji,x,y);
-    ctx.globalAlpha=1;
-  } else {
-    // Main orb
-    const bodyG=ctx.createRadialGradient(x-pr*.3,y-pr*.3,0,x,y,pr);
-    bodyG.addColorStop(0,`rgb(${Math.min(255,fr+80)},${Math.min(255,fg2+80)},${Math.min(255,fb+80)})`);
-    bodyG.addColorStop(.5,`rgb(${fr},${fg2},${fb})`);
-    bodyG.addColorStop(1,`rgb(${Math.max(0,fr-60)},${Math.max(0,fg2-60)},${Math.max(0,fb-60)})`);
-    ctx.beginPath(); ctx.arc(x,y,pr,0,Math.PI*2);
-    ctx.fillStyle=bodyG; ctx.fill();
-
-    // Specular highlight
-    ctx.beginPath(); ctx.arc(x-pr*.28,y-pr*.3,pr*.35,0,Math.PI*2);
-    ctx.fillStyle='rgba(255,255,255,0.75)'; ctx.fill();
-
-    // Sparkle effect
-    if(f.sparkle && frame%3===0){
-      const sa = f.glowPhase;
-      ctx.globalAlpha=0.7;
-      for(let k=0;k<4;k++){
-        const sa2=sa+k*Math.PI/2;
-        const sr=pr*1.8;
-        ctx.beginPath();
-        ctx.moveTo(x+Math.cos(sa2)*sr*0.3,y+Math.sin(sa2)*sr*0.3);
-        ctx.lineTo(x+Math.cos(sa2)*sr,y+Math.sin(sa2)*sr);
-        ctx.strokeStyle=`rgba(${fr},${fg2},${fb},0.5)`;
-        ctx.lineWidth=1; ctx.stroke();
-      }
-      ctx.globalAlpha=1;
+    if(dist < player.radius) {
+      foods.splice(i, 1);
+      player.radius += 0.15;
+      document.getElementById('score').innerText = 'Tamanho: ' + Math.floor(player.radius);
     }
   }
 }
 
-// ─── DRAW PLASMA RINGS ───────────────────────────────────────────────────────
-function drawPlasmaRings(){
-  for(let i=plasmaRings.length-1;i>=0;i--){
-    const p=plasmaRings[i];
-    p.r+=( p.maxR-p.r)*0.18;
-    p.life--;
-    p.a=p.life/p.maxLife;
-    if(p.life<=0){plasmaRings.splice(i,1);continue;}
+function gameLoop() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    const {x,y}=w2s(p.x,p.y);
-    const {r:cr,g:cg,b:cb}=colToRgb(p.col);
-    const sr=p.r*cam.sc;
+  const cameraX = player.x - canvas.width / 2;
+  const cameraY = player.y - canvas.height / 2;
 
-    ctx.globalAlpha=p.a*0.8;
-    ctx.beginPath(); ctx.arc(x,y,sr,0,Math.PI*2);
-    ctx.strokeStyle=`rgba(${cr},${cg},${cb},1)`;
-    ctx.lineWidth=3*(p.a);
-    ctx.stroke();
+  drawGrid(cameraX, cameraY);
+  drawFoods(cameraX, cameraY);
+  drawPlayer(cameraX, cameraY);
 
-    // Second ring
-    ctx.beginPath(); ctx.arc(x,y,sr*0.7,0,Math.PI*2);
-    ctx.strokeStyle=`rgba(${cr},${cg},${cb},0.5)`;
-    ctx.lineWidth=2;
-    ctx.stroke();
-    ctx.globalAlpha=1;
-  }
+  update();
+
+  requestAnimationFrame(gameLoop);
 }
 
-// ─── DRAW SHOCKWAVES ─────────────────────────────────────────────────────────
-function drawShockwaves(){
-  for(let i=shockwaves.length-1;i>=0;i--){
-    const s=shockwaves[i];
-    s.r+=(s.maxR-s.r)*0.15;
-    s.life--;
-    s.a=s.life/s.maxLife;
-    if(s.life<=0){shockwaves.splice(i,1);continue;}
+gameLoop();
 
-    const {x,y}=w2s(s.x,s.y);
-    const sr=s.r*cam.sc;
+const joystick = document.getElementById('joystick');
+const stick = document.getElementById('stick');
 
-    ctx.globalAlpha=s.a*0.6;
-    ctx.beginPath(); ctx.arc(x,y,sr,0,Math.PI*2);
-    ctx.strokeStyle=`rgba(255,255,255,${s.a})`;
-    ctx.lineWidth=4*s.a;
-    ctx.stroke();
-    ctx.globalAlpha=1;
-  }
-}
+let dragging = false;
 
-// ─── UPDATE PLAYER ────────────────────────────────────────────────────────────
-function updatePlayer(){
-  if(!player.alive||!player.blobs.length) return;
+joystick.addEventListener('touchstart', () => {
+  dragging = true;
+});
 
-  let tx,ty;
-  if(joy.on){
-    const cx=player.blobs.reduce((s,b)=>s+b.x,0)/player.blobs.length;
-    const cy=player.blobs.reduce((s,b)=>s+b.y,0)/player.blobs.length;
-    tx=cx+joy.dx*220; ty=cy+joy.dy*220;
-  } else {
-    tx=cam.x+(mouse.x-W/2)/cam.sc;
-    ty=cam.y+(mouse.y-H/2)/cam.sc;
-  }
+window.addEventListener('touchend', () => {
+  dragging = false;
+  stick.style.left = '30px';
+  stick.style.top = '30px';
+  player.vx = 0;
+  player.vy = 0;
+});
 
-  for(const b of player.blobs){
-    const dx=tx-b.x, dy=ty-b.y, d=Math.hypot(dx,dy)||1;
-    const sp=b.spd;
-    if(d>sp){b.vx=dx/d*sp; b.vy=dy/d*sp;} else {b.vx=dx;b.vy=dy;}
-    b.x=Math.max(b.r,Math.min(W_SIZE-b.r,b.x+b.vx));
-    b.y=Math.max(b.r,Math.min(W_SIZE-b.r,b.y+b.vy));
-    b.gp+=.025;
-    if(b.mt>0) b.mt--;
-    if(b.eatAnim>0) b.eatAnim-=1/8;
+window.addEventListener('touchmove', (e) => {
+  if(!dragging) return;
 
-    // Trail update
-    b.trail.push({x:b.x,y:b.y,r:b.r});
-    if(b.trail.length>12) b.trail.shift();
-  }
+  const touch = e.touches[0];
+  const rect = joystick.getBoundingClientRect();
 
-  // blob merge/repulsion
-  for(let i=0;i<player.blobs.length;i++){
-    for(let j=i+1;j<player.blobs.length;j++){
-      const a=player.blobs[i],b=player.blobs[j];
-      const dx=b.x-a.x, dy=b.y-a.y, d=Math.hypot(dx,dy), mn=a.r+b.r;
-      if(a.mt<=0&&b.mt<=0&&d<mn*.65){
-        const tm=a.mass+b.mass;
-        a.x=(a.x*a.mass+b.x*b.mass)/tm; a.y=(a.y*a.mass+b.y*b.mass)/tm;
-        a.r=Math.sqrt(tm);
-        spawnParts(a.x,a.y,a.col,8);
-        spawnPlasmaRing(a.x,a.y,a.col);
-        player.blobs.splice(j,1); j--;
-      } else if(d<mn){
-        const push=(mn-d)/2.2, nx=dx/d,ny=dy/d;
-        a.x-=nx*push*.5; a.y-=ny*push*.5;
-        b.x+=nx*push*.5; b.y+=ny*push*.5;
-      }
-    }
-  }
+  const x = touch.clientX - rect.left - 55;
+  const y = touch.clientY - rect.top - 55;
 
-  // eat food
-  let foodEaten=0;
-  for(const f of foods){
-    if(!f.alive) continue;
-    for(const b of player.blobs){
-      if(Math.hypot(f.x-b.x,f.y-b.y)<b.r+f.r){
-        b.r=Math.sqrt(b.mass+f.r*f.r*2);
-        b.eatAnim=1;
-        spawnParts(f.x,f.y,f.col,4);
-        if(foodEaten%6===0){
-          const {x:sx,y:sy}=w2s(f.x,f.y);
-          spawnEmojiBurst(sx,sy,EAT_EMOJIS,3);
-        }
-        foodEaten++;
-        Object.assign(f, mkFood());
-        player.score+=Math.ceil(f.r);
-        player.xp+=4;
-        break;
-      }
-    }
-  }
+  const dist = Math.min(Math.sqrt(x*x + y*y), 35);
+  const angle = Math.atan2(y, x);
 
-  // virus explosion
-  for(const v of viruses){
-    for(const b of player.blobs){
-      if(b.r>v.r&&Math.hypot(v.x-b.x,v.y-b.y)<b.r-v.r*.4){
-        spawnParts(b.x,b.y,b.col,30,'big');
-        spawnPlasmaRing(b.x,b.y,b.col,true);
-        spawnShockwave(b.x,b.y);
-        addCamShake(18);
-        screenFlash('rgba(0,255,100,0.2)', 250);
-        const {x:sx,y:sy}=w2s(b.x,b.y);
-        spawnEmojiBurst(sx,sy,['💥','⚡','💚','🌿','🦠'],6);
-        spawnEmojiText(sx, sy, '💥 VÍRUS!');
-        const splits=Math.min(7,16-player.blobs.length);
-        for(let k=0;k<splits;k++){
-          const a=(Math.PI*2/splits)*k;
-          const nb=new Blob(b.x+Math.cos(a)*b.r*.5,b.y+Math.sin(a)*b.r*.5,b.r/Math.sqrt(splits+1),b.col,b.name);
-          nb.vx=Math.cos(a)*9; nb.vy=Math.sin(a)*9; nb.mt=200;
-          player.blobs.push(nb);
-        }
-        b.r/=Math.sqrt(splits+1); b.mt=200;
-        break;
-      }
-    }
-  }
+  const stickX = Math.cos(angle) * dist;
+  const stickY = Math.sin(angle) * dist;
 
-  // eat bots
-  for(let i=bots.length-1;i>=0;i--){
-    const bot=bots[i]; if(!bot.alive) continue;
-    for(const b of player.blobs){
-      if(b.r>bot.r*1.12&&Math.hypot(bot.x-b.x,bot.y-b.y)<b.r+bot.r*.3){
-        b.r=Math.sqrt(b.mass+bot.mass*.6);
-        b.eatAnim=1;
-        spawnParts(bot.x,bot.y,bot.col,25,'big');
-        spawnPlasmaParticles(bot.x,bot.y,bot.col,15);
-        spawnPlasmaRing(bot.x,bot.y,bot.col,true);
-        spawnShockwave(bot.x,bot.y);
-        addCamShake(12);
-        screenFlash('rgba(255,200,0,0.15)', 200);
+  stick.style.left = (stickX + 30) + 'px';
+  stick.style.top = (stickY + 30) + 'px';
 
-        const {x:sx,y:sy}=w2s(bot.x,bot.y);
-        spawnEmojiBurst(sx,sy,KILL_EMOJIS,8);
-        spawnEmojiText(sx, sy, `💀 ${bot.name}!`);
+  player.vx = Math.cos(angle) * player.speed;
+  player.vy = Math.sin(angle) * player.speed;
+});
 
-        player.score+=Math.ceil(bot.mass/8);
-        player.xp+=90;
-        addKillFeed(`⚔️ Você eliminou ${bot.name}!`);
-        bot.alive=false;
-        setTimeout(()=>{
-          bot.x=Math.random()*W_SIZE; bot.y=Math.random()*W_SIZE;
-          bot.r=20+Math.random()*40; bot.alive=true;
-          bot.trail=[];
-        },4000);
-        break;
-      }
-    }
-  }
-
-  // eaten by bots
-  for(const bot of bots){
-    if(!bot.alive) continue;
-    for(let i=player.blobs.length-1;i>=0;i--){
-      const b=player.blobs[i];
-      if(bot.r>b.r*1.15&&Math.hypot(bot.x-b.x,bot.y-b.y)<bot.r+b.r*.3){
-        spawnParts(b.x,b.y,b.col,20,'big');
-        spawnPlasmaRing(b.x,b.y,b.col);
-        addCamShake(10);
-        screenFlash('rgba(255,0,50,0.25)', 300);
-        player.blobs.splice(i,1);
-      }
-    }
-  }
-
-  if(!player.blobs.length){ killPlayer(); return; }
-
-  // level up
-  const need=player.level*220;
-  if(player.xp>=need){
-    player.level++;player.xp-=need;
-    const {x:sx,y:sy}=w2s(player.blobs[0].x,player.blobs[0].y);
-    spawnEmojiBurst(sx,sy,LEVEL_EMOJIS,10);
-    spawnEmojiText(sx, sy, `⭐ NÍVEL ${player.level}!`);
-    spawnShockwave(player.blobs[0].x,player.blobs[0].y);
-    screenFlash('rgba(255,215,0,0.2)', 400);
-    addCamShake(15);
-    toast(`⭐ Nível ${player.level}!`);
-  }
-
-  player.score=Math.max(player.score,Math.ceil(player.blobs.reduce((s,b)=>s+b.mass,0)/100));
-  document.getElementById('hLvl').textContent=player.level;
-  document.getElementById('hScore').textContent=player.score;
-}
-
-// ─── UPDATE BOTS ─────────────────────────────────────────────────────────────
-function updateBots(){
-  for(const bot of bots){
-    if(!bot.alive) continue;
-    bot.timer++;
-    if(bot.timer%100===0){
-      let cf=null,md=99999;
-      for(const f of foods){const d=Math.hypot(f.x-bot.x,f.y-bot.y);if(d<md){md=d;cf=f;}}
-      if(cf&&md<500){bot.tx=cf.x;bot.ty=cf.y;}
-      else{bot.tx=Math.random()*W_SIZE;bot.ty=Math.random()*W_SIZE;}
-      for(const b of player.blobs){
-        if(b.r>bot.r*1.1&&Math.hypot(b.x-bot.x,b.y-bot.y)<300){
-          bot.tx=bot.x+(bot.x-b.x)*2; bot.ty=bot.y+(bot.y-b.y)*2;
-        }
-      }
-    }
-    const dx=bot.tx-bot.x,dy=bot.ty-bot.y,d=Math.hypot(dx,dy)||1;
-    const sp=Math.max(.5,4/Math.sqrt(bot.mass/300));
-    bot.x+=dx/d*sp; bot.y+=dy/d*sp;
-    bot.x=Math.max(bot.r,Math.min(W_SIZE-bot.r,bot.x));
-    bot.y=Math.max(bot.r,Math.min(W_SIZE-bot.r,bot.y));
-    bot.gp+=.025;
-
-    // Trail
-    bot.trail.push({x:bot.x,y:bot.y,r:bot.r});
-    if(bot.trail.length>8) bot.trail.shift();
-    if(bot.eatAnim>0) bot.eatAnim-=1/8;
-
-    for(const f of foods){
-      if(!f.alive) continue;
-      if(Math.hypot(f.x-bot.x,f.y-bot.y)<bot.r+f.r){
-        bot.r=Math.sqrt(bot.mass+f.r*f.r);
-        bot.eatAnim=1;
-        Object.assign(f,mkFood());
-      }
-    }
-    for(const o of bots){
-      if(o===bot||!o.alive) continue;
-      if(bot.r>o.r*1.15&&Math.hypot(bot.x-o.x,bot.y-o.y)<bot.r){
-        bot.r=Math.sqrt(bot.mass+o.mass*.5);
-        bot.eatAnim=1;
-        spawnParts(o.x,o.y,o.col,10);
-        spawnPlasmaRing(o.x,o.y,o.col);
-        o.alive=false;
-        setTimeout(()=>{o.x=Math.random()*W_SIZE;o.y=Math.random()*W_SIZE;o.r=20+Math.random()*35;o.alive=true;o.trail=[];},5000);
-      }
-    }
-  }
-}
-
-// ─── UPDATE PARTICLES ────────────────────────────────────────────────────────
-function updateParts(){
-  for(let i=parts.length-1;i>=0;i--){
-    const p=parts[i];
-    p.x+=p.vx; p.y+=p.vy;
-    p.vx*=.90; p.vy*=.90;
-    if(p.gravity) p.vy+=p.gravity;
-    p.life--; p.a=p.life/p.ml;
-    if(p.life<=0) parts.splice(i,1);
-  }
-}
-
-// ─── UPDATE EJECT FOOD ───────────────────────────────────────────────────────
-function updateEj(){
-  for(const f of foods){
-    if(!f.ej) continue;
-    f.x+=f.vx; f.y+=f.vy; f.vx*=.88; f.vy*=.88;
-    f.ejl--;if(f.ejl<=0)f.ej=false;
-  }
-}
-
-// ─── KILL PLAYER ─────────────────────────────────────────────────────────────
-function killPlayer(){
-  player.alive=false;
-  cancelAnimationFrame(raf);
-  screenFlash('rgba(255,0,50,0.5)', 600);
-  document.getElementById('dScore').textContent=player.score;
-  document.getElementById('dLvl').textContent=player.level;
-  setTimeout(()=>{
-    document.getElementById('death').style.display='flex';
-  }, 400);
-}
-
-// ─── LEADERBOARD ─────────────────────────────────────────────────────────────
-function updateLB(){
-  const entries=[
-    {name:player.blobs[0]?.name||'Você', score:player.score, col:playerColor, me:true},
-    ...bots.filter(b=>b.alive).map(b=>({name:b.name,score:Math.ceil(b.mass/8),col:b.col}))
-  ].sort((a,b)=>b.score-a.score).slice(0,8);
-  document.getElementById('lbList').innerHTML=entries.map((e,i)=>
-    `<div class="lb-row${e.me?' me':''}">
-      <span class="lb-n">${i+1}</span>
-      <div class="lb-c" style="background:${e.col}"></div>
-      <span class="lb-nm">${e.name}</span>
-      <span class="lb-sc">${e.score}</span>
-    </div>`
-  ).join('');
-}
-
-// ─── MINIMAP ─────────────────────────────────────────────────────────────────
-function drawMM(){
-  const sz=110, sc=sz/W_SIZE;
-  mmc.fillStyle='rgba(4,12,40,.9)'; mmc.fillRect(0,0,sz,sz);
-
-  // Nebula hint on minimap
-  mmc.globalAlpha=0.15;
-  for(const nc of nebulaeClouds.slice(0,4)){
-    const ng=mmc.createRadialGradient(nc.x*sc,nc.y*sc,0,nc.x*sc,nc.y*sc,nc.r*sc);
-    ng.addColorStop(0,nc.col); ng.addColorStop(1,'transparent');
-    mmc.beginPath(); mmc.arc(nc.x*sc,nc.y*sc,nc.r*sc,0,Math.PI*2);
-    mmc.fillStyle=ng; mmc.fill();
-  }
-  mmc.globalAlpha=1;
-
-  mmc.fillStyle='rgba(255,255,255,.12)';
-  for(const f of foods){ mmc.fillRect(f.x*sc-.5,f.y*sc-.5,1.5,1.5); }
-  for(const b of bots){
-    if(!b.alive) continue;
-    mmc.beginPath(); mmc.arc(b.x*sc,b.y*sc,Math.max(1.5,b.r*sc*1.5),0,Math.PI*2);
-    mmc.fillStyle=b.col; mmc.fill();
-  }
-  for(const b of player.blobs){
-    // Glow dot for player on minimap
-    const pg=mmc.createRadialGradient(b.x*sc,b.y*sc,0,b.x*sc,b.y*sc,Math.max(3.5,b.r*sc*3));
-    pg.addColorStop(0,playerColor); pg.addColorStop(1,'transparent');
-    mmc.beginPath(); mmc.arc(b.x*sc,b.y*sc,Math.max(3.5,b.r*sc*3),0,Math.PI*2);
-    mmc.fillStyle=pg; mmc.fill();
-  }
-  mmc.strokeStyle='rgba(0,245,255,.55)'; mmc.lineWidth=1;
-  mmc.strokeRect((cam.x-W/cam.sc/2)*sc,(cam.y-H/cam.sc/2)*sc,(W/cam.sc)*sc,(H/cam.sc)*sc);
-}
-
-// ─── DRAW SCENE ──────────────────────────────────────────────────────────────
-function drawScene(){
-  // Deep space background
-  ctx.fillStyle='#00000e';
-  ctx.fillRect(0,0,W,H);
-
-  ctx.save();
-  ctx.translate(W/2+camShake.x,H/2+camShake.y);
-  ctx.scale(cam.sc,cam.sc);
-  ctx.translate(-cam.x,-cam.y);
-
-  // Nebula clouds
-  for(const nc of nebulaeClouds){
-    nc.phase+=0.004;
-    const nx=nc.x+Math.sin(nc.phase)*50;
-    const ny=nc.y+Math.cos(nc.phase*0.7)*40;
-    const nr=nc.r*(1+0.1*Math.sin(nc.phase*2));
-    const {r:cr,g:cg,b:cb}=colToRgb(nc.col);
-    const ng=ctx.createRadialGradient(nx,ny,0,nx,ny,nr);
-    ng.addColorStop(0,`rgba(${cr},${cg},${cb},${nc.a*1.5})`);
-    ng.addColorStop(.5,`rgba(${cr},${cg},${cb},${nc.a})`);
-    ng.addColorStop(1,`rgba(${cr},${cg},${cb},0)`);
-    ctx.beginPath(); ctx.arc(nx,ny,nr,0,Math.PI*2);
-    ctx.fillStyle=ng; ctx.fill();
-  }
-
-  // Stars with proper twinkle
-  for(const s of bgStars){
-    s.tw+=s.twinkleSpeed;
-    const brightness=.5+.5*Math.sin(s.tw);
-    ctx.globalAlpha=s.a*brightness;
-    // Occasional cross-shaped star
-    if(s.r>1.2){
-      ctx.strokeStyle='#fff';
-      ctx.lineWidth=s.r*.5;
-      ctx.globalAlpha=s.a*brightness*.6;
-      const len=s.r*2.5;
-      ctx.beginPath();
-      ctx.moveTo(s.x-len,s.y); ctx.lineTo(s.x+len,s.y);
-      ctx.moveTo(s.x,s.y-len); ctx.lineTo(s.x,s.y+len);
-      ctx.stroke();
-    }
-    ctx.globalAlpha=s.a*brightness;
-    ctx.fillStyle='#fff';
-    ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fill();
-  }
-  ctx.globalAlpha=1;
-
-  // World border – glowing
-  const borderGrad=ctx.createLinearGradient(0,0,W_SIZE,W_SIZE);
-  borderGrad.addColorStop(0,'rgba(0,245,255,0.4)');
-  borderGrad.addColorStop(.5,'rgba(123,47,255,0.4)');
-  borderGrad.addColorStop(1,'rgba(255,0,110,0.4)');
-  ctx.strokeStyle=borderGrad; ctx.lineWidth=6;
-  ctx.strokeRect(0,0,W_SIZE,W_SIZE);
-  // Inner glow border
-  ctx.strokeStyle='rgba(0,245,255,0.1)'; ctx.lineWidth=30;
-  ctx.strokeRect(0,0,W_SIZE,W_SIZE);
-
-  // Grid
-  ctx.strokeStyle='rgba(255,255,255,.025)'; ctx.lineWidth=1;
-  for(let i=0;i<=W_SIZE;i+=100){
-    ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,W_SIZE);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(W_SIZE,i);ctx.stroke();
-  }
-
-  // Food
-  for(const f of foods) drawFood(f);
-
-  // Viruses
-  for(const v of viruses) drawVirus(v);
-
-  // Plasma rings (world space)
-  drawPlasmaRings();
-  drawShockwaves();
-
-  // Particles
-  for(const p of parts){
-    ctx.globalAlpha=p.a;
-    if(p.isPlasma){
-      // Glowing plasma particle
-      const pr2=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*2.5);
-      pr2.addColorStop(0,p.col);
-      pr2.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.beginPath(); ctx.arc(p.x,p.y,p.r*2.5,0,Math.PI*2);
-      ctx.fillStyle=pr2; ctx.fill();
-    } else if(p.isSpark){
-      ctx.beginPath();
-      ctx.moveTo(p.x,p.y);
-      ctx.lineTo(p.x-p.vx*3,p.y-p.vy*3);
-      ctx.strokeStyle=p.col; ctx.lineWidth=p.r*.6; ctx.stroke();
-    } else {
-      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      ctx.fillStyle=p.col; ctx.fill();
-    }
-  }
-  ctx.globalAlpha=1;
-
-  // Bot trails
-  for(const b of bots){
-    if(!b.alive||b.trail.length<2) continue;
-    drawTrail(b.trail, b.col);
-  }
-
-  // Bots
-  for(const b of bots){
-    if(!b.alive) continue;
-    drawBlob(b.x,b.y,b.r,b.col,b.name,b.gp,false,b.eatAnim||0);
-  }
-
-  // Player trails
-  for(const b of player.blobs){
-    if(b.trail.length<2) continue;
-    drawTrail(b.trail, b.col);
-  }
-
-  // Player blobs
-  for(const b of player.blobs){
-    drawBlob(b.x,b.y,b.r,b.col,b.name,b.gp,true,b.eatAnim||0);
-  }
-
-  ctx.restore();
-}
-
-// ─── MAIN LOOP ────────────────────────────────────────────────────────────────
-function loop(){
-  frame++;
-  drawTunnel();
-  updatePlayer();
-  updateBots();
-  updateParts();
-  updateEj();
-  updateCam();
-  drawScene();
-  if(frame%12===0){ updateLB(); drawMM(); }
-  raf=requestAnimationFrame(loop);
-}
-
-// ─── START ────────────────────────────────────────────────────────────────────
-document.getElementById('playBtn').addEventListener('click', startGame);
-document.getElementById('playBtn').addEventListener('touchend', e=>{e.preventDefault();startGame();},{passive:false});
-document.getElementById('respawnBtn').addEventListener('click', doRespawn);
-document.getElementById('respawnBtn').addEventListener('touchend', e=>{e.preventDefault();doRespawn();},{passive:false});
-
-function startGame(){
-  playerName=document.getElementById('pName').value.trim()||'Jogador';
-  document.getElementById('splash').style.display='none';
-  document.getElementById('hud').style.display='block';
-  document.getElementById('killFeed').style.display='flex';
-  document.getElementById('plasmaBar').style.display='block';
-  document.getElementById('joy').style.display='block';
-  document.getElementById('actBtns').style.display='flex';
-  resize();
-  initWorld();
-  spawnPlayer();
-  loop();
-}
-
-function doRespawn(){
-  document.getElementById('death').style.display='none';
-  initWorld();
-  spawnPlayer();
-  loop();
-}
-
-// Also draw tunnel on splash
-(function splashTunnel(){
-  if(document.getElementById('splash').style.display==='none') return;
-  tunnelTime+=0.012;
-  tc.width=W; tc.height=H;
-  drawTunnel();
-  requestAnimationFrame(splashTunnel);
-})();
-
-document.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
-document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
 </script>
+
 </body>
 </html>
